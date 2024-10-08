@@ -1,0 +1,3 @@
+---
+suseconnect_binary: "/usr/sbin/SUSEConnect"
+required_packages: python-instance-billing-flavor-check

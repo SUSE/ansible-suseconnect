@@ -1,0 +1,102 @@
+---
+- name: Fail if not running as root
+  ansible.builtin.fail:
+    msg: "This role needs to be executed as root"
+  when: ansible_user_uid != 0
+
+- name: Check if SUSE connect is available
+  ansible.builtin.stat:
+    path: "{{ suseconnect_binary }}"
+  register: suseconnect_bin_check
+
+- name: Fail if SUSE connect not available
+  ansible.builtin.fail:
+    msg: "This role needs SUSEConnect available and executable!"
+  when:
+    - ( suseconnect_bin_check.stat.executable is defined and not suseconnect_bin_check.stat.executable) or
+      ( suseconnect_bin_check.stat.xusr is defined and not suseconnect_bin_check.stat.xusr)
+
+- name: Save registration status into temp var
+  ansible.builtin.command: "{{ suseconnect_binary }} -s"
+  register: _suseconnect_status
+  changed_when: false
+
+- name: Convert Registration Status Into Usable Data Structure
+  ansible.builtin.set_fact:
+    suseconnect_status: |
+      {{ suseconnect_status | combine({
+      item['identifier']: {
+        'status': item['status'],
+        'version': item['version'],
+        'arch': item['arch']
+      }}) }}
+  with_items: "{{ _suseconnect_status['stdout'] | default([]) }}"
+
+- name: Generate List Of Product Names
+  ansible.builtin.set_fact:
+    suseconnect_product_list: "{{ suseconnect_products | map(attribute='product') | list }}"
+
+- name: Determine if the instance is a cloud instance based on system vendor
+  when: not is_cloud_instance is defined
+  ansible.builtin.set_fact:
+    is_cloud_instance: >-
+      {{ ansible_system_vendor is search("Amazon EC2|Google|Microsoft Corporation|Alibaba Cloud|IBM Cloud|Oracle Cloud") }}
+
+- name: Register cloud instances
+  ansible.builtin.include_tasks: cloud_instance.yml
+  when: is_cloud_instance
+
+- name: Add subscriptions
+  ansible.builtin.command: |
+    {{ item_binary }}
+    {{ item['product'] | default(ansible_distribution) }}/
+    {{- item['version'] | default(ansible_distribution_version) }}/
+    {{- item['arch'] | default(ansible_machine) }}
+    {%- if item['key'] is defined %} -r {{ item['key'] }}{% endif %}
+  vars:
+    item_binary: >-
+      {% if item['product'] in ['SLES', 'SL-Micro'] and __suseconnect_is_registercloudguest and item['key'] is defined %}
+        registercloudguest
+      {% else %}
+        /usr/sbin/SUSEConnect -p
+      {% endif %}
+  when:
+    - ( suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
+      ( suseconnect_status[item['product'] | default(ansible_distribution)]['status'] != 'Registered' or
+      ( item['version'] is defined and suseconnect_status[item['product'] | default(ansible_distribution)]['version']|string != item['version']|string ))) or
+      suseconnect_reregister
+  with_items: "{{ suseconnect_products }}"
+  changed_when: false
+
+- name: Remove Subscriptions
+  ansible.builtin.command: |
+    {{ suseconnect_binary }} -d -p
+    {{- item['key'] | default(ansible_distribution) }}/
+    {{- item['value']['version'] | default(ansible_distribution_version) }}/
+    {{- item['value']['arch'] | default(ansible_machine) }}
+  when:
+    - suseconnect_remove_subscriptions | bool
+    - item['key'] not in suseconnect_product_list
+    - suseconnect_product_list | length > 0
+  with_dict: "{{ suseconnect_status }}"
+  changed_when: false
+
+- name: Deregister system
+  when:
+    - suseconnect_product_list | length == 0
+    - suseconnect_status['SLES']['status'] != 'Not Registered' or suseconnect_status['SL-Micro']['status'] != 'Not Registered'
+  block:
+    - name: Check if /var/log/guestregister exists  # does not create the file.
+      ansible.builtin.stat:
+        path: /var/log/guestregister
+      register: guestregister_file
+
+    - name: Deregister system using registercloudguest
+      ansible.builtin.command: registercloudguest --clean
+      when: guestregister_file.stat.exists
+      changed_when: false
+
+    - name: Deregister system using suseconnect
+      ansible.builtin.command: "{{ suseconnect_binary }} -d"
+      when: not guestregister_file.stat.exists
+      changed_when: false
