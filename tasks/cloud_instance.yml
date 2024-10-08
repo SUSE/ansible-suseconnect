@@ -4,43 +4,15 @@
     name: "{{ required_packages }}"
     state: present
 
-- name: Identify if PAYG or BYOS and handle PAYG gracefully
-  block:
-    - name: Identify if PAYG or BYOS
-      ansible.builtin.command: instance-flavor-check
-      register: instance_flavor_result
-      changed_when: false
-
-  rescue:
-    - name: Fail if the instance is PAYG
-      ansible.builtin.fail:
-        msg: >
-          "The instance is PAYG.
-          Do not register it with the SUSE Customer Center or RMT server; it is auto-registered.
-          Only register BYOS instances."
-      when: instance_flavor_result.stdout.strip() == "PAYG"
-
-    - name: Instance identified as BYOS
-      ansible.builtin.debug:
-        msg: "Instance flavor is BYOS"
-      when: instance_flavor_result.stdout.strip() == "BYOS"
-
-- name: Check if cloud-regionsrv-client is installed and get version # packagefact fails on sles due to pythonversion.
-  ansible.builtin.command: "rpm -q --queryformat '%{VERSION}' cloud-regionsrv-client"
-  register: package_info
-  ignore_errors: true
+- name: Check instance type and fail if PAYG to prevent improper registration
+  ansible.builtin.command: instance-flavor-check
+  register: instance_flavor_result
   changed_when: false
-
-- name: Set the package version if cloud-regionsrv-client is installed
-  ansible.builtin.set_fact:
-    cloud_regionsrv_version: "{{ package_info.stdout }}"
-  when: package_info.rc == 0
+  failed_when: instance_flavor_result.stdout.strip() == "PAYG"
 
 - name: Determine if system is registercloudguest and set flag
   when:
     - not __suseconnect_is_registercloudguest is defined
-    - package_info.rc == 0
-    - cloud_regionsrv_version is version('9.3.0', '>=')
   block:
     - name: Check if registercloudguest exists in /sbin
       ansible.builtin.stat:
@@ -50,3 +22,5 @@
     - name: Set flag if registercloudguest exists
       ansible.builtin.set_fact:
         __suseconnect_is_registercloudguest: "{{ __registercloudguest_stat.stat.exists }}"
+
+# add support for adding modules for transactional update.

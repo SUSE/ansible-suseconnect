@@ -40,7 +40,7 @@
   when: not is_cloud_instance is defined
   ansible.builtin.set_fact:
     is_cloud_instance: >-
-      {{ ansible_system_vendor is search("Amazon EC2|Google|Microsoft Corporation|Alibaba Cloud|IBM Cloud|Oracle Cloud") }}
+      {{ ansible_system_vendor is search("Amazon EC2|Google|Microsoft Corporation") }}
 
 - name: Register cloud instances
   ansible.builtin.include_tasks: cloud_instance.yml
@@ -71,32 +71,35 @@
 - name: Remove Subscriptions
   ansible.builtin.command: |
     {{ suseconnect_binary }} -d -p
-    {{- item['key'] | default(ansible_distribution) }}/
+    "{{- item['key'] | default(ansible_distribution) }}/
     {{- item['value']['version'] | default(ansible_distribution_version) }}/
-    {{- item['value']['arch'] | default(ansible_machine) }}
+    {{- item['value']['arch'] | default(ansible_machine) }}"
   when:
     - suseconnect_remove_subscriptions | bool
     - item['key'] not in suseconnect_product_list
     - suseconnect_product_list | length > 0
+    - item['value']['status'] == 'Registered'
+    - item['key'] not in ['SLES', 'SL-Micro']
   with_dict: "{{ suseconnect_status }}"
   changed_when: false
 
 - name: Deregister system
   when:
     - suseconnect_product_list | length == 0
-    - suseconnect_status['SLES']['status'] != 'Not Registered' or suseconnect_status['SL-Micro']['status'] != 'Not Registered'
+    - suseconnect_status.get('SLES', {}).get('status', 'Not Registered') != 'Not Registered' or
+      suseconnect_status.get('SL-Micro', {}).get('status', 'Not Registered') != 'Not Registered'
   block:
-    - name: Check if /var/log/guestregister exists  # does not create the file.
+    - name: Check if /var/log/cloudregister exists  # does not create the file.
       ansible.builtin.stat:
-        path: /var/log/guestregister
-      register: guestregister_file
+        path: /var/log/cloudregister
+      register: cloudregister_file
 
     - name: Deregister system using registercloudguest
       ansible.builtin.command: registercloudguest --clean
-      when: guestregister_file.stat.exists
+      when: cloudregister_file.stat.exists
       changed_when: false
 
     - name: Deregister system using suseconnect
       ansible.builtin.command: "{{ suseconnect_binary }} -d"
-      when: not guestregister_file.stat.exists
+      when: not cloudregister_file.stat.exists
       changed_when: false

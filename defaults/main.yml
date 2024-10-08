@@ -1,8 +1,8 @@
 ---
 suseconnect_products: []
 suseconnect_status: {}
-suseconnect_reregister: False
-suseconnect_register_only_products: False
+suseconnect_reregister: false
+suseconnect_register_only_products: false
 
 # do not remove subscriptions by default
 suseconnect_remove_subscriptions: false
