@@ -76,6 +76,8 @@ Author Information
 
 Harshvardhan Sharma
 
-Sebastian Meyer (meyer@b1-systems.de)
-B1 Systems GmbH
+TO-DO
+------
 
+- add option for email.
+- add support for transactional update.
