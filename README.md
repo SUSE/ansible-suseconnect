@@ -69,9 +69,14 @@ Register a SLES system and activate a bunch of extensions:
 License
 -------
 
-GPLv3
+GPL-3.0
 
 Author Information
 ------------------
 
-Harshvardhan Sharma
+### Original Author
+- Sebastian Meyer (meyer@b1-systems.de)  
+  B1 Systems GmbH
+
+### Modified by
+- Harshvardhan Sharma
