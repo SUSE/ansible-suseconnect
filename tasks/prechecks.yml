@@ -34,7 +34,7 @@
         name: "{{ required_packages }}"
         state: present
 
-    - name: Check instance type and fail if PAYG to prevent improper registration
+    - name: Fail if PAYG to prevent improper registration
       ansible.builtin.command: instance-flavor-check
       register: instance_flavor_result
       changed_when: false

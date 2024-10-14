@@ -5,5 +5,8 @@
 - name: Register system
   ansible.builtin.include_tasks: register.yml
 
+- name: Manage subscriptions
+  ansible.builtin.include_tasks: manage_subscriptions.yml
+
 - name: Deregister system
   ansible.builtin.include_tasks: deregister.yml
