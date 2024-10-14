@@ -75,9 +75,3 @@ Author Information
 ------------------
 
 Harshvardhan Sharma
-
-TO-DO
-------
-
-- add option for email.
-- add support for transactional update.
