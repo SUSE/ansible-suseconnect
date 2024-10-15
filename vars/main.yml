@@ -1,3 +1,20 @@
 ---
-suseconnect_binary: "/usr/sbin/SUSEConnect"
-required_packages: python-instance-billing-flavor-check
+__suseconnect_binary: "/usr/sbin/SUSEConnect"
+__suseconnect_package: python-instance-billing-flavor-check
+__suseconnect_status: {}
+__suseconnect_is_payg_instance: null
+__suseconnect_combined_products: []
+
+__suseconnect_commands_dict:
+  subscription:
+    cloud: "registercloudguest"
+    transactional: "transactional-update register"
+    general: "/usr/sbin/SUSEConnect"
+  register:
+    cloud: "registercloudguest"
+    transactional: "transactional-update register"
+    general: "/usr/sbin/SUSEConnect"
+  deregister:
+    cloud: "registercloudguest --clean"
+    transactional: "transactional-update register -d"
+    general: "/usr/sbin/SUSEConnect -d"

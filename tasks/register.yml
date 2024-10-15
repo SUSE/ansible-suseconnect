@@ -1,43 +1,29 @@
 ---
 - name: Register system
+  ansible.builtin.command: >
+    {{ __suseconnect_register_command }}{%- if item['key'] is defined %} -r {{ item['key'] }}
+    {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}{% endif %}
   when:
-    - ( suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
-      ( suseconnect_status[item['product'] | default(ansible_distribution)]['status'] != 'Registered' or
-      ( item['version'] is defined and suseconnect_status[item['product'] | default(ansible_distribution)]['version']|string != item['version']|string ))) or
+    - (item.product == 'SLES' and ansible_distribution == 'SLES') or (item.product == 'SL-Micro' and ansible_distribution == 'SL-Micro')
+    - ( __suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
+      ( __suseconnect_status[item['product'] | default(ansible_distribution)]['status'] != 'Registered' or
+      ( item['version'] is defined and __suseconnect_status[item['product'] | default(ansible_distribution)]['version']|string != item['version']|string ))) or
       suseconnect_reregister
-  block:
-    - name: Filter products for SLES and SL-Micro
-      ansible.builtin.set_fact:
-        sles_products: "{{ suseconnect_products | selectattr('product', 'equalto', 'SLES') | list }}"
-        sl_micro_products: "{{ suseconnect_products | selectattr('product', 'equalto', 'SL-Micro') | list }}"
+  loop: "{{ __suseconnect_combined_products }}"
+  loop_control:
+    label: "{{ item['product'] }}"
+  changed_when: false
+  no_log: true
 
-    - name: Set registration command based on OS and instance type
-      ansible.builtin.set_fact:
-        register_command: >-
-          {% if __suseconnect_is_registercloudguest %}
-            registercloudguest
-          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
-            transactional-update register
-          {% else %}
-            /usr/sbin/SUSEConnect
-          {% endif %}
-
-    - name: Register SLES system
-      ansible.builtin.command: |
-        {{ register_command }}
-        {%- if item['key'] is defined %} -r {{ item['key'] }}{% endif %}
-        {%- if item['email'] is defined %} -e {{ item['email'] }}{% endif %}
-      when:
-        - ansible_distribution == 'SLES'
-      with_items: "{{ sles_products }}"
-      changed_when: false
-
-    - name: Register SL-Micro system
-      ansible.builtin.command: |
-        {{ register_command }}
-        {%- if item['key'] is defined %} -r {{ item['key'] }}{% endif %}
-        {%- if item['email'] is defined %} -e {{ item['email'] }}{% endif %}
-      when:
-        - ansible_distribution == 'SL-Micro'
-      with_items: "{{ sl_micro_products }}"
-      changed_when: false
+- name: Add subscription
+  ansible.builtin.command: |
+    {{ __suseconnect_subscribe_command }}
+    -p {{ item['product'] | default(ansible_distribution) }}/
+    {{- item['version'] | default(ansible_distribution_version) }}/
+    {{- item['arch'] | default(ansible_machine) }}
+    {%- if item['key'] is defined %} -r {{ item['key'] }}{% endif %}
+  when:
+    - item['product'] not in ['SLES', 'SL-Micro']
+  loop: "{{ suseconnect_products }}"
+  changed_when: false
+  no_log: true

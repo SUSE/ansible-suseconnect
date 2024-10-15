@@ -6,14 +6,14 @@
 
 - name: Assert if SUSE connect is available
   ansible.builtin.stat:
-    path: "{{ suseconnect_binary }}"
-  register: suseconnect_bin_check
+    path: "{{ __suseconnect_binary }}"
+  register: __suseconnect_bin_check
 
 - name: Fail if SUSE connect not available
   ansible.builtin.assert:
     that:
-      - suseconnect_bin_check.stat.exists
-      - suseconnect_bin_check.stat.executable
+      - __suseconnect_bin_check.stat.exists
+      - __suseconnect_bin_check.stat.executable
     fail_msg: "This role needs SUSEConnect available and executable!"
 
 - name: Fail if the OS is not SUSE family
@@ -21,50 +21,109 @@
     that: ansible_os_family == "Suse" or ansible_distribution == "SL-Micro"
     fail_msg: "This role is only supported on SUSE family operating systems."
 
-- name: Determine if the instance is a cloud instance based on system vendor
+- name: "SUSEConnect - Determine if the instance is a cloud instance"
   ansible.builtin.set_fact:
-    is_cloud_instance: >-
-      {{ ansible_system_vendor is search("Amazon EC2|Google|Microsoft Corporation") }}
+    __suseconnect_is_cloud_instance: >-
+      {{
+        ("amazon" in ansible_system_vendor | lower) or
+        ("amazon" in ansible_product_name | lower) or
+        ("amazon" in ansible_product_version | lower) or
+        (ansible_product_name == 'Google Compute Engine') or
+        (ansible_chassis_asset_tag == 'ibmcloud') or
+        (ansible_product_name == 'Virtual Machine' and ansible_chassis_vendor == 'Microsoft Corporation')
+      }}
 
 - name: Prevent registration against SCC for PAYG instances
-  when: is_cloud_instance
+  when: __suseconnect_is_cloud_instance
   block:
-    - name: Ensure required packages are installed
-      ansible.builtin.package:
-        name: "{{ required_packages }}"
-        state: present
-
-    - name: Fail if PAYG to prevent improper registration
-      ansible.builtin.command: instance-flavor-check
-      register: instance_flavor_result
-      changed_when: false
-      failed_when: instance_flavor_result.stdout.strip() == "PAYG"
-
     - name: Check if registercloudguest exists in /usr/sbin
       ansible.builtin.stat:
         path: /usr/sbin/registercloudguest
-      register: __registercloudguest_stat
+      register: __suseconnect_registercloudguest_stat
 
     - name: Set flag if registercloudguest exists
       ansible.builtin.set_fact:
-        __suseconnect_is_registercloudguest: "{{ __registercloudguest_stat.stat.exists }}"
+        __suseconnect_is_registercloudguest: "{{ __suseconnect_registercloudguest_stat.stat.exists }}"
 
-- name: Save registration status into temp var
-  ansible.builtin.command: "{{ suseconnect_binary }} -s"
-  register: _suseconnect_status
-  changed_when: false
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name: "{{ __suseconnect_package }}"
+        state: present
 
-- name: Convert Registration Status Into Usable Data Structure
-  ansible.builtin.set_fact:
-    suseconnect_status: |
-      {{ suseconnect_status | combine({
-      item['identifier']: {
-        'status': item['status'],
-        'version': item['version'],
-        'arch': item['arch']
-      }}) }}
-  with_items: "{{ _suseconnect_status['stdout'] | default([]) }}"
+    - name: Skip if PAYG to prevent improper registration
+      ansible.builtin.command: instance-flavor-check
+      register: __suseconnect_instance_flavor_result
+      changed_when: false
+      failed_when: __suseconnect_instance_flavor_result.stdout.strip() not in ["PAYG", "BYOS"]
 
-- name: Generate List Of Product Names
-  ansible.builtin.set_fact:
-    suseconnect_product_list: "{{ suseconnect_products | map(attribute='product') | list }}"
+    - name: Set PAYG flag if instance is PAYG
+      ansible.builtin.set_fact:
+        __suseconnect_is_payg_instance: "{{ __suseconnect_instance_flavor_result.stdout.strip() == 'PAYG' }}"
+
+    - name: Debug warning message for PAYG instance
+      ansible.builtin.debug:
+        msg: "Warning: This is a PAYG instance. Skipping registration steps to avoid conflicts."
+      when: __suseconnect_is_payg_instance
+
+- name: Set variables for SUSEConnect
+  when: not __suseconnect_is_payg_instance
+  block:
+    - name: Save registration status into temp var
+      ansible.builtin.command: "{{ __suseconnect_binary }} -s"
+      register: __suseconnect_tmp_status
+      changed_when: false
+
+    - name: Convert Registration Status Into Usable Data Structure
+      ansible.builtin.set_fact:
+        __suseconnect_status: >-
+          {{ __suseconnect_status | combine({
+          item['identifier']: {
+            'status': item['status'],
+            'version': item['version'],
+            'arch': item['arch']
+          }}) }}
+      loop: "{{ __suseconnect_tmp_status['stdout'] | default([]) }}"
+      no_log: true
+
+    - name: Generate List Of Product Names
+      ansible.builtin.set_fact:
+        suseconnect_product_list: "{{ suseconnect_products | map(attribute='product') | list }}"
+
+    - name: Create unified product data structure for SLES and SL-Micro
+      ansible.builtin.set_fact:
+        __suseconnect_combined_products: >-
+          {{
+          (suseconnect_products | selectattr('product', 'equalto', 'SLES') | list) +
+          (suseconnect_products | selectattr('product', 'equalto', 'SL-Micro') | list)
+          }}
+
+    - name: Set subscription command for add or remove
+      ansible.builtin.set_fact:
+        __suseconnect_subscribe_command: >-
+          {% if ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.subscription.transactional }}
+          {% else %}
+            {{ __suseconnect_commands_dict.subscription.general }}
+          {% endif %}
+
+    - name: Set registration command based on OS and instance type
+      ansible.builtin.set_fact:
+        __suseconnect_register_command: >-
+          {% if __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.register.cloud }}
+          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.register.transactional }}
+          {% else %}
+            {{ __suseconnect_commands_dict.register.general }}
+          {% endif %}
+
+    - name: Set deregistration command based on OS, instance type
+      ansible.builtin.set_fact:
+        __suseconnect_deregister_command: >-
+          {% if __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.deregister.cloud }}
+          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.deregister.transactional }}
+          {% else %}
+            {{ __suseconnect_commands_dict.deregister.general }}
+          {% endif %}

@@ -20,14 +20,10 @@ You can set the following variables:
 | `    version:`                      | string | product version that should be activated, defaults to the major version of the base os      |
 | `    arch:`                         | string | architecture of the product to be actived, defaults to the arch of the OS (ansible_machine) |
 | `    key:`                          | string | if the product needs an additional registration key                                         |
+| `    email:`                        | string | specify an email address that is used in SUSE Customer Center for registration              |
 | `suseconnect_reregister:`           | bool   | register all products regardless of current status                                          |
 | `suseconnect_remove_subscriptions:` | bool   | remove currently registered products, absent in `suseconnect_products`                      |
-
-This variable is used, but should not be set by the user:
-
-| Variable                            | Type   | Description                                                                                 |
-|-------------------------------------|--------|---------------------------------------------------------------------------------------------|
-| `suseconnect_binary:`               | string | path of the SUSEConnect binary                                                              |
+| `suseconnect_deregister:`           | bool   | deregister product by defualt set to false                                                  |
 
 Dependencies
 ------------

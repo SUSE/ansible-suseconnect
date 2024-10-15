@@ -1,22 +1,9 @@
 ---
 - name: Deregister system
+  ansible.builtin.command: >-
+    {{ __suseconnect_deregister_command }}
   when:
     - suseconnect_product_list | length == 0
-    - suseconnect_status.get('SLES', {}).get('status', 'Not Registered') != 'Not Registered' or
-      suseconnect_status.get('SL-Micro', {}).get('status', 'Not Registered') != 'Not Registered'
-  block:
-    - name: Set deregistration command based on OS, instance type
-      ansible.builtin.set_fact:
-        deregister_command: >-
-          {% if __suseconnect_is_registercloudguest %}
-            registercloudguest --clean
-          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
-            transactional-update register -d
-          {% else %}
-            /usr/sbin/SUSEConnect -d
-          {% endif %}
-
-    - name: Deregister system
-      ansible.builtin.command: |
-        {{ deregister_command }}
-      changed_when: false
+    - __suseconnect_status.get('SLES', {}).get('status', 'Not Registered') != 'Not Registered' or
+      __suseconnect_status.get('SL-Micro', {}).get('status', 'Not Registered') != 'Not Registered'
+  changed_when: false
