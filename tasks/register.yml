@@ -35,9 +35,9 @@
       {% endif %}
   when:
     - item['product'] not in ['SLES', 'SL-Micro']
-    - ( __suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
-      ( __suseconnect_status[item['product'] | default(ansible_distribution)]['status'] != 'Registered' or
-      ( item['version'] is defined and __suseconnect_status[item['product'] | default(ansible_distribution)]['version']|string != item['version']|string ))) or
-      suseconnect_reregister
+    - (__suseconnect_status[item['product']] is not defined or
+      __suseconnect_status[item['product']]['status'] != 'Registered' or
+      (item['version'] is defined and __suseconnect_status[item['product']]['version'] | string != item['version'] | string)) or
+     suseconnect_reregister
   loop: "{{ suseconnect_products }}"
   changed_when: false
