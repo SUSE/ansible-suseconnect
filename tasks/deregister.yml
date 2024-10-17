@@ -1,7 +1,8 @@
 ---
 - name: Deregister system
-  ansible.builtin.command: >-
-    {{ __suseconnect_deregister_command }}
+  ansible.builtin.command:
+    cmd: >-
+      {{ __suseconnect_deregister_command }}
   when:
     - suseconnect_product_list | length == 0
     - __suseconnect_status.get('SLES', {}).get('status', 'Not Registered') != 'Not Registered' or

@@ -1,8 +1,13 @@
 ---
 - name: Register system
-  ansible.builtin.command: >-
-    {{ __suseconnect_register_command }}{%- if item['key'] is defined %} -r {{ item['key'] }}
-    {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}{% endif %}
+  ansible.builtin.command:
+    cmd: >-
+      {{ __suseconnect_register_command }} {{ __command_args }}
+  vars:
+    __command_args: >-
+      {%- if item['key'] is defined %} -r {{ item['key'] }}
+      {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}
+      {% endif %}
   when:
     - (item.product == 'SLES' and ansible_distribution == 'SLES') or (item.product == 'SL-Micro' and ansible_distribution == 'SL-Micro')
     - ( __suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
@@ -13,17 +18,26 @@
   loop_control:
     label: "{{ item['product'] }}"
   changed_when: false
-  no_log: true
 
 - name: Add subscription
-  ansible.builtin.command: |
-    {{ __suseconnect_subscribe_command }}
-    -p {{ item['product'] | default(ansible_distribution) }}/
-    {{- item['version'] | default(ansible_distribution_version) }}/
-    {{- item['arch'] | default(ansible_machine) }}
-    {%- if item['key'] is defined %} -r {{ item['key'] }}{% endif %}
+  ansible.builtin.command:
+    cmd: >-
+      {{ __suseconnect_subscribe_command }} {{ __command_args }}
+  vars:
+    __command_args: >-
+      -p {{ [item['product'] | default(ansible_distribution),
+          item['version'] | default(ansible_distribution_version),
+          item['arch'] | default(ansible_machine)]
+          | join('/')
+      }}
+      {% if item['key'] is defined %}
+        -r {{ item['key'] }}
+      {% endif %}
   when:
     - item['product'] not in ['SLES', 'SL-Micro']
+    - ( __suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
+      ( __suseconnect_status[item['product'] | default(ansible_distribution)]['status'] != 'Registered' or
+      ( item['version'] is defined and __suseconnect_status[item['product'] | default(ansible_distribution)]['version']|string != item['version']|string ))) or
+      suseconnect_reregister
   loop: "{{ suseconnect_products }}"
   changed_when: false
-  no_log: true

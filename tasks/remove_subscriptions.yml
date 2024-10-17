@@ -1,10 +1,14 @@
 ---
 - name: Remove Subscriptions
-  ansible.builtin.command: |
-    {{ __suseconnect_subscribe_command }}
-    -d -p "{{- item['key'] | default(ansible_distribution) }}/
-    {{- item['value']['version'] | default(ansible_distribution_version) }}/
-    {{- item['value']['arch'] | default(ansible_machine) }}"
+  ansible.builtin.command:
+    cmd: >-
+      {{ __suseconnect_subscribe_command }} {{ __command_args }}
+  vars:
+    __command_args: >-
+      -d -p {{ [item['key'] | default(ansible_distribution),
+          item['value']['version'] | default(ansible_distribution_version),
+          item['value']['arch'] | default(ansible_machine)]
+          | join('/') }}
   when:
     - item['key'] not in suseconnect_product_list
     - suseconnect_product_list | length > 0
@@ -12,4 +16,3 @@
     - item['key'] not in ['SLES', 'SL-Micro']
   loop: "{{ __suseconnect_status | dict2items }}"
   changed_when: false
-  no_log: true

@@ -51,7 +51,8 @@
         state: present
 
     - name: Skip if PAYG to prevent improper registration
-      ansible.builtin.command: instance-flavor-check
+      ansible.builtin.command:
+        cmd: instance-flavor-check
       register: __suseconnect_instance_flavor_result
       changed_when: false
       failed_when: __suseconnect_instance_flavor_result.stdout.strip() not in ["PAYG", "BYOS"]
@@ -69,7 +70,8 @@
   when: not __suseconnect_is_payg_instance
   block:
     - name: Save registration status into temp var
-      ansible.builtin.command: "{{ __suseconnect_binary }} -s"
+      ansible.builtin.command:
+        cmd: "{{ __suseconnect_binary }} -s"
       register: __suseconnect_tmp_status
       changed_when: false
 
