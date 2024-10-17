@@ -43,11 +43,11 @@
 
     - name: Set flag if registercloudguest exists
       ansible.builtin.set_fact:
-        __suseconnect_is_registercloudguest: "{{ __suseconnect_registercloudguest_stat.stat.exists }}"
+        __suseconnect_is_registercloudguest: "{{ true if __suseconnect_registercloudguest_stat.stat.exists else false }}"
 
     - name: Ensure required packages are installed
       ansible.builtin.package:
-        name: "{{ __suseconnect_package }}"
+        name: "{{ __suseconnect_required_package }}"
         state: present
 
     - name: Skip if PAYG to prevent improper registration

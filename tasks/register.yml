@@ -1,6 +1,6 @@
 ---
 - name: Register system
-  ansible.builtin.command: >
+  ansible.builtin.command: >-
     {{ __suseconnect_register_command }}{%- if item['key'] is defined %} -r {{ item['key'] }}
     {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}{% endif %}
   when:

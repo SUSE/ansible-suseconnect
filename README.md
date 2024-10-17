@@ -23,7 +23,7 @@ You can set the following variables:
 | `    email:`                        | string | specify an email address that is used in SUSE Customer Center for registration              |
 | `suseconnect_reregister:`           | bool   | register all products regardless of current status                                          |
 | `suseconnect_remove_subscriptions:` | bool   | remove currently registered products, absent in `suseconnect_products`                      |
-| `suseconnect_deregister:`           | bool   | deregister product by defualt set to false                                                  |
+| `suseconnect_deregister:`           | bool   | deregister product by default set to false                                                  |
 
 Dependencies
 ------------
@@ -70,9 +70,9 @@ GPL-3.0
 Author Information
 ------------------
 
-### Original Author
+### Originally authored by
 - Sebastian Meyer (meyer@b1-systems.de)  
   B1 Systems GmbH
 
-### Modified by
+### Modified and maintained by
 - Harshvardhan Sharma

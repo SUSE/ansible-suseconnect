@@ -5,4 +5,3 @@ suseconnect_reregister: false
 # do not remove subscriptions by default
 suseconnect_remove_subscriptions: false
 suseconnect_deregister: false
-__suseconnect_is_registercloudguest: null
