@@ -85,19 +85,13 @@
             'arch': item['arch']
           }}) }}
       loop: "{{ __suseconnect_tmp_status['stdout'] | default([]) }}"
-      no_log: true
+      loop_control:
+        label: "{{ item['identifier'] }}"
+      # no_log: true
 
-    - name: Generate List Of Product Names
+    - name: Generate list of subscriptions
       ansible.builtin.set_fact:
-        suseconnect_product_list: "{{ suseconnect_products | map(attribute='product') | list }}"
-
-    - name: Create unified product data structure for SLES and SL-Micro
-      ansible.builtin.set_fact:
-        __suseconnect_combined_products: >-
-          {{
-          (suseconnect_products | selectattr('product', 'equalto', 'SLES') | list) +
-          (suseconnect_products | selectattr('product', 'equalto', 'SL-Micro') | list)
-          }}
+        __suseconnect_subscriptions_list: "{{ suseconnect_subscriptions | map(attribute='product') | list }}"
 
     - name: Set subscription command for add or remove
       ansible.builtin.set_fact:

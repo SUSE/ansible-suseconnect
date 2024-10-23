@@ -4,7 +4,10 @@
     cmd: >-
       {{ __suseconnect_deregister_command }}
   when:
-    - suseconnect_product_list | length == 0
-    - __suseconnect_status.get('SLES', {}).get('status', 'Not Registered') != 'Not Registered' or
-      __suseconnect_status.get('SL-Micro', {}).get('status', 'Not Registered') != 'Not Registered'
+    - item['key'] == (ansible_distribution)
+    - item['value']['status'] != 'Not Registered'
+  loop: "{{ __suseconnect_status | dict2items }}"
+  loop_control:
+    label: "{{ item['key'] }}"
   changed_when: false
+  # no_log: true

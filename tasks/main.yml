@@ -4,7 +4,9 @@
 
 - name: Register system
   ansible.builtin.include_tasks: register.yml
-  when: not __suseconnect_is_payg_instance
+  when:
+    - not __suseconnect_is_payg_instance
+    - not suseconnect_deregister
 
 - name: Remove subscriptions
   ansible.builtin.include_tasks: remove_subscriptions.yml

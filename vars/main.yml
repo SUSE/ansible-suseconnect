@@ -3,7 +3,7 @@ __suseconnect_binary: "/usr/sbin/SUSEConnect"
 __suseconnect_required_package: python-instance-billing-flavor-check
 __suseconnect_status: {}
 __suseconnect_is_payg_instance: null
-__suseconnect_combined_products: []
+__suseconnect_is_registercloudguest: null
 
 __suseconnect_commands_dict:
   subscription:
