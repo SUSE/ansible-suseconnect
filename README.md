@@ -1,6 +1,8 @@
 SUSEConnect
 ===========
 
+![Ansible Lint](https://github.com/HVSharma12/suseconnect/actions/workflows/ansible-lint.yml/badge.svg?branch=main)
+
 This Ansible role is used to manage SUSE Linux system registrations with the SUSE Customer Center (SCC) or a local Subscription Management Tool (SMT) server. It automates the process of registering and deregistering systems, as well as managing additional products and modules on a SUSE system
 
 This role includes:
