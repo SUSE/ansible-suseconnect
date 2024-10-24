@@ -10,7 +10,6 @@ on:  # yamllint disable-line rule:truthy
 jobs:
   ansible_lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
