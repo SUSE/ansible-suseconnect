@@ -10,4 +10,3 @@
   loop_control:
     label: "{{ item['key'] }}"
   changed_when: false
-  # no_log: true

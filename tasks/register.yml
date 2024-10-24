@@ -19,7 +19,7 @@
   loop_control:
     label: "{{ item['product'] }}"
   changed_when: false
-  # no_log: true
+  no_log: true
 
 - name: Add subscription
   ansible.builtin.command:
@@ -46,4 +46,4 @@
   loop_control:
     label: "{{ item['product'] }}"
   changed_when: false
-  # no_log: true
+  no_log: true

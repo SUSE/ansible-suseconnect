@@ -1,5 +1,5 @@
 ---
-- name: Run Asserts and Pre-checks
+- name: Run asserts and pre-checks
   ansible.builtin.include_tasks: prechecks.yml
 
 - name: Register system

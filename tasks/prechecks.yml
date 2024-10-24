@@ -16,7 +16,7 @@
       - __suseconnect_bin_check.stat.executable
     fail_msg: "This role needs SUSEConnect available and executable!"
 
-- name: Fail if the OS is not SUSE family
+- name: Fail if the os is not SUSE family
   ansible.builtin.assert:
     that: ansible_os_family == "Suse" or ansible_distribution == "SL-Micro"
     fail_msg: "This role is only supported on SUSE family operating systems."
@@ -33,7 +33,7 @@
         (ansible_product_name == 'Virtual Machine' and ansible_chassis_vendor == 'Microsoft Corporation')
       }}
 
-- name: Prevent registration against SCC for PAYG instances
+- name: Prevent registration against scc for payg instances
   when: __suseconnect_is_cloud_instance
   block:
     - name: Check if registercloudguest exists in /usr/sbin
@@ -57,7 +57,7 @@
       changed_when: false
       failed_when: __suseconnect_instance_flavor_result.stdout.strip() not in ["PAYG", "BYOS"]
 
-    - name: Set PAYG flag if instance is PAYG
+    - name: Set payg flag if instance is payg
       ansible.builtin.set_fact:
         __suseconnect_is_payg_instance: "{{ __suseconnect_instance_flavor_result.stdout.strip() == 'PAYG' }}"
 
@@ -74,8 +74,25 @@
         cmd: "{{ __suseconnect_binary }} -s"
       register: __suseconnect_tmp_status
       changed_when: false
+      no_log: true
 
-    - name: Convert Registration Status Into Usable Data Structure
+    - name: Sanitize registration output
+      ansible.builtin.set_fact:
+        __suseconnect_sanitized_status: >-
+          {{
+            __suseconnect_tmp_status.stdout
+            | from_json
+            | json_query(
+                '[].{
+                  identifier: identifier,
+                  version: version,
+                  arch: arch,
+                  status: status
+                }'
+              )
+          }}
+
+    - name: Convert registration status into usable data structure
       ansible.builtin.set_fact:
         __suseconnect_status: >-
           {{ __suseconnect_status | combine({
@@ -84,10 +101,9 @@
             'version': item['version'],
             'arch': item['arch']
           }}) }}
-      loop: "{{ __suseconnect_tmp_status['stdout'] | default([]) }}"
+      loop: "{{ __suseconnect_sanitized_status | default([]) }}"
       loop_control:
-        label: "{{ item['identifier'] }}"
-      # no_log: true
+        label: "{{ item.identifier }}"
 
     - name: Generate list of subscriptions
       ansible.builtin.set_fact:
@@ -102,7 +118,7 @@
             {{ __suseconnect_commands_dict.subscription.general }}
           {% endif %}
 
-    - name: Set registration command based on OS and instance type
+    - name: Set registration command based on os and instance type
       ansible.builtin.set_fact:
         __suseconnect_register_command: >-
           {% if __suseconnect_is_registercloudguest %}
@@ -113,7 +129,7 @@
             {{ __suseconnect_commands_dict.register.general }}
           {% endif %}
 
-    - name: Set deregistration command based on OS, instance type
+    - name: Set deregistration command based on os, instance type
       ansible.builtin.set_fact:
         __suseconnect_deregister_command: >-
           {% if __suseconnect_is_registercloudguest %}

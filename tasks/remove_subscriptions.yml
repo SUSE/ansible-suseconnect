@@ -1,5 +1,5 @@
 ---
-- name: Remove Subscriptions
+- name: Remove subscriptions
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_subscribe_command }} {{ __command_args }}
@@ -18,4 +18,4 @@
   loop_control:
     label: "{{ item['key'] }}"
   changed_when: false
-  # no_log: true
+  no_log: true
