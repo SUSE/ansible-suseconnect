@@ -1,5 +1,4 @@
-SUSEConnect
-===========
+# SUSEConnect
 
 ![Ansible Lint](https://github.com/HVSharma12/suseconnect/actions/workflows/ansible-lint.yml/badge.svg?branch=main)
 
@@ -7,23 +6,21 @@ This Ansible role is used to manage SUSE Linux system registrations with the SUS
 
 This role includes:
 
-  - Registration of a SUSE system to SCC/SMT.
-  - Activation of specific add-on products or modules.
-  - Deregistration of systems or products.
-  - Precheck tasks to ensure a smooth registration process.
-  - Removal of subscriptions not listed in the registration configuration.
+- Registration of a SUSE system to SCC/SMT.
+- Activation of specific add-on products or modules.
+- Deregistration of systems or products.
+- Precheck tasks to ensure a smooth registration process.
+- Removal of subscriptions not listed in the registration configuration.
 
-Requirements
-------------
+## Requirements
 
 Before using this role, ensure that you have the following:
 
-  - A valid registration key for your SUSE products, which can be obtained with your SUSE subscription.
-  - For some products, additional registration keys are required.
-  - You need to know the internal product names for the products you're registering. These names can be found in [PRODUCTS.md](PRODUCTS.md).
+- A valid registration key for your SUSE products, which can be obtained with your SUSE subscription.
+- For some products, additional registration keys are required.
+- You need to know the internal product names for the products you're registering. These names can be found in [PRODUCTS.md](PRODUCTS.md).
 
-Role Variables
---------------
+## Role Variables
 
 The following variables can be configured when using this role:
 
@@ -31,19 +28,19 @@ The following variables can be configured when using this role:
 |-------------------------------------|--------|---------------------------------------------------------------------------------------------|
 | `suseconnect_base_product:`         | list   | List of products that should be activated on the target system.                             |
 | `suseconnect_subscriptions:`        | list   | List of additional modules or products to be registered.                                    |
-| `  - product:`                      | string | Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.                           |
-| `    version:`                      | string | Version of the product to be activated, defaults to the base OS version.                    |
-| `    arch:`                         | string | Architecture of the product, defaults to the OS architecture (ansible_machine).(Optional)   |
-| `    key:`                          | string | Additional registration key if required by the product.                                     |
-| `    email:`                        | string | Email address used in SCC for registration.(Optional)                                       |
+| `- product:`                      | string | Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.                           |
+| `version:`                      | string | Version of the product to be activated, defaults to the base OS version.                    |
+| `arch:`                         | string | Architecture of the product, defaults to the OS architecture (ansible_machine).(Optional)   |
+| `key:`                          | string | Additional registration key if required by the product.                                     |
+| `email:`                        | string | Email address used in SCC for registration.(Optional)                                       |
 | `suseconnect_reregister:`           | bool   | Whether to force re-registration of all products, regardless of current status.             |
 | `suseconnect_remove_subscriptions:` | bool   | Remove currently registered products that are not listed in suseconnect_products.           |
 | `suseconnect_deregister:`           | bool   | Whether to deregister the system (default: false).                                          |
 
-Example Task
-------------
+## Example Task
 
 ### Registering a SUSE Linux System
+
 This example registers a SLES system and activates several modules:
 
 ```yaml
@@ -75,6 +72,7 @@ This example registers a SLES system and activates several modules:
 ```
 
 ### Deregistering Products
+
 This example shows how to deregister products when they are no longer required on the system:
 
 ```yaml
@@ -91,6 +89,7 @@ This example shows how to deregister products when they are no longer required o
 ```
 
 ### Removing Subscriptions
+
 This task removes any subscriptions not listed in the suseconnect_products variable. It ensures the system is only registered with the necessary products, while cleaning up any unnecessary subscriptions. Below is an example where we register only the base subscription for SLES and SL-Micro systems, and remove all other subscriptions that are not listed.
 
 ```yaml
@@ -120,17 +119,17 @@ This task removes any subscriptions not listed in the suseconnect_products varia
         name: suseconnect
 ```
 
-License
--------
+## License
 
 This project is licensed under GPL-3.0.
 
-Author Information
-------------------
+## Author Information
 
 ### Originally authored by
-- Sebastian Meyer (meyer@b1-systems.de)  
+
+- Sebastian Meyer (<meyer@b1-systems.de>)  
   B1 Systems GmbH
 
 ### Modified and maintained by
+
 - Harshvardhan Sharma
