@@ -74,7 +74,7 @@
         cmd: "{{ __suseconnect_binary }} -s"
       register: __suseconnect_tmp_status
       changed_when: false
-      no_log: true
+      no_log: "{{ __suseconnect_no_log }}"
 
     - name: Sanitize registration output
       ansible.builtin.set_fact:

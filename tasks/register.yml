@@ -19,7 +19,7 @@
   loop_control:
     label: "{{ item['product'] }}"
   changed_when: false
-  no_log: true
+  no_log: "{{ __suseconnect_no_log }}"
 
 - name: Add subscription
   ansible.builtin.command:
@@ -37,7 +37,7 @@
       {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}
       {% endif %}
   when:
-    - item['product'] in [ansible_distribution]
+    - item['version'] == ansible_distribution_version
     - (__suseconnect_status[item['product']] is not defined or
       __suseconnect_status[item['product']]['status'] != 'Registered' or
       (item['version'] is defined and __suseconnect_status[item['product']]['version'] | string != item['version'] | string)) or
@@ -46,4 +46,4 @@
   loop_control:
     label: "{{ item['product'] }}"
   changed_when: false
-  no_log: true
+  no_log: "{{ __suseconnect_no_log }}"
