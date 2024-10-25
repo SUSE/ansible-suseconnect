@@ -101,6 +101,16 @@ This task removes any subscriptions not listed in the suseconnect_products varia
   become: true
   gather_facts: true
   vars:
+    suseconnect_base_product:
+      - product: 'SLES'
+        version: '{{ ansible_distribution_version }}'
+        key: '{{ sles_registration_key }}'
+        arch: '{{ ansible_machine }}'
+      - product: 'SL-Micro'
+        version: '{{ ansible_distribution_version }}'
+        key: '{{ sles_registration_key }}'
+        arch: '{{ ansible_machine }}'
+
     suseconnect_subscriptions:
       - product: 'sle-module-basesystem'
         version: '{{ ansible_distribution_version }}'
