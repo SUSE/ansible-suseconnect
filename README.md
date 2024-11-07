@@ -9,8 +9,8 @@ This role includes:
 - Registration of a SUSE system to SCC/SMT.
 - Activation of specific add-on products or modules.
 - Deregistration of systems or products.
+- Removal of subscriptions.
 - Precheck tasks to ensure a smooth registration process.
-- Removal of subscriptions not listed in the registration configuration.
 
 ## Requirements
 
@@ -80,12 +80,12 @@ The following variables can be configured when using this role:
 ### suseconnect_reregister
 
 - **Type**: bool
-- **Description**: Whether to force re-registration of all products, regardless of current status(default: false).
+- **Description**: Whether to force re-registration of all products, regardless of current status (default: false).
 
 ### suseconnect_remove_subscriptions
 
 - **Type**: bool
-- **Description**: Remove currently registered products that are not listed in `suseconnect_subscriptions`(default: false).
+- **Description**: If set to `true`, this will remove the subscriptions that are mentioned in `suseconnect_subscriptions` (default: false).
 
 ### suseconnect_deregister
 
@@ -102,7 +102,6 @@ This example registers a SLES system and activates several modules:
 - name: Register with SCC and activate modules
   hosts: all
   become: true
-  gather_facts: true
   vars:
     suseconnect_base_product:
       product: 'SLES'
@@ -136,7 +135,6 @@ This example shows how to deregister base products when they are no longer requi
 - name: Deregister products from SCC
   hosts: all
   become: true
-  gather_facts: true
   vars:
     suseconnect_deregister: true
 
@@ -148,13 +146,12 @@ This example shows how to deregister base products when they are no longer requi
 
 ### Removing Subscriptions
 
-This task removes subscriptions listed in the suseconnect_products variable. It ensures cleaning up any unnecessary subscriptions. Below is an example where we remove subscriptions.
+This task removes the subscriptions specified in the `suseconnect_subscriptions` variable by setting `suseconnect_remove_subscriptions` to `true`. Below is an example of removing subscriptions.
 
 ```yaml
 - name: Clean up old subscriptions and add base subscription
   hosts: all
   become: true
-  gather_facts: true
   vars:
     suseconnect_remove_subscriptions: true  # Remove subscriptions
 
