@@ -24,18 +24,73 @@ Before using this role, ensure that you have the following:
 
 The following variables can be configured when using this role:
 
-| Variable                            | Type   | Description                                                                                 |
-|-------------------------------------|--------|---------------------------------------------------------------------------------------------|
-| `suseconnect_base_product:`         | list   | List of products that should be activated on the target system.                             |
-| `suseconnect_subscriptions:`        | list   | List of additional modules or products to be registered.                                    |
-| `- product:`                        | string | Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.                           |
-| `version:`                          | string | Version of the product to be activated, defaults to the base OS version.                    |
-| `arch:`                             | string | Architecture of the product, defaults to the OS architecture (ansible_machine).(Optional)   |
-| `key:`                              | string | Additional registration key if required by the product.                                     |
-| `email:`                            | string | Email address used in SCC for registration.(Optional)                                       |
-| `suseconnect_reregister:`           | bool   | Whether to force re-registration of all products, regardless of current status.             |
-| `suseconnect_remove_subscriptions:` | bool   | Remove currently registered products that are not listed in suseconnect_products.           |
-| `suseconnect_deregister:`           | bool   | Whether to deregister the system (default: false).                                          |
+### suseconnect_base_product
+
+- **Type**: dict
+- **Description**: Defines the base product that should be activated on the target system. The dictionary should include the following keys:
+  - `product`
+    - **Type**: string
+    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.
+    - **Required**: Yes
+  - `version`
+    - **Type**: string
+    - **Description**: Version of the product to be activated, defaults to the base OS version.
+    - **Required**: Yes
+  - `arch`
+    - **Type**: string
+    - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_machine`).
+    - **Required**: No
+  - `key`
+    - **Type**: string
+    - **Description**: Registration key for the product.
+    - **Required**: Yes
+  - `email`
+    - **Type**: string
+    - **Description**: Email address used in SCC for registration.
+    - **Required**: No
+
+### suseconnect_subscriptions
+
+- **Type**: list
+- **Description**: List of additional modules or products to be registered on the target system.
+
+  Each dictionary in the list can include the following keys:
+
+  - `product`
+    - **Type**: string
+    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.
+    - **Required**: Yes
+  - `version`
+    - **Type**: string
+    - **Description**: Version of the product to be activated, defaults to the base OS version.
+    - **Required**: No
+  - `arch`
+    - **Type**: string
+    - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_machine`).
+    - **Required**: No
+  - `key`
+    - **Type**: string
+    - **Description**: Additional registration key if required by the product.
+    - **Required**: No
+  - `email`
+    - **Type**: string
+    - **Description**: Email address used in SCC for registration.
+    - **Required**: No
+
+### suseconnect_reregister
+
+- **Type**: bool
+- **Description**: Whether to force re-registration of all products, regardless of current status(default: false).
+
+### suseconnect_remove_subscriptions
+
+- **Type**: bool
+- **Description**: Remove currently registered products that are not listed in `suseconnect_subscriptions`(default: false).
+
+### suseconnect_deregister
+
+- **Type**: bool
+- **Description**: Whether to deregister the system (default: false).
 
 ## Example Task
 
@@ -50,10 +105,10 @@ This example registers a SLES system and activates several modules:
   gather_facts: true
   vars:
     suseconnect_base_product:
-      - product: 'SLES'
-        version: '{{ ansible_distribution_version }}'
-        key: '{{ sles_registration_key }}'
-        arch: '{{ ansible_machine }}'
+      product: 'SLES'
+      version: '{{ ansible_distribution_version }}'
+      key: '{{ sles_registration_key }}'
+      arch: '{{ ansible_machine }}'
 
     suseconnect_subscriptions:
       - product: 'sle-module-basesystem'
@@ -121,12 +176,12 @@ This project is licensed under GPL-3.0.
 
 ## Author Information
 
-### Originally authored by
-
-- Sebastian Meyer (<meyer@b1-systems.de>)  
-  B1 Systems GmbH
-
 ### Modified and maintained by
 
 - Harshvardhan Sharma
 - Marcel Mamula
+
+### Originally authored by
+
+- Sebastian Meyer (<meyer@b1-systems.de>)  
+  B1 Systems GmbH
