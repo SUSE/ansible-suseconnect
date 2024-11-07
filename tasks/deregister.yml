@@ -3,10 +3,20 @@
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_deregister_command }}
+  vars:
+    __suseconnect_deregister_command: >-
+      {% if __suseconnect_is_registercloudguest %}
+        {{ __suseconnect_commands_dict.deregister.cloud }}
+      {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+        {{ __suseconnect_commands_dict.deregister.transactional }}
+      {% else %}
+        {{ __suseconnect_commands_dict.deregister.general }}
+      {% endif %}
   when:
     - item['key'] == (ansible_distribution)
     - item['value']['status'] != 'Not Registered'
   loop: "{{ __suseconnect_status | dict2items }}"
   loop_control:
     label: "{{ item['key'] }}"
-  changed_when: false
+  register: __suseconnect_deregister_result
+  changed_when: "__suseconnect_deregister_result.rc == 0"

@@ -75,7 +75,7 @@ This example registers a SLES system and activates several modules:
 
 ### Deregistering Products
 
-This example shows how to deregister products when they are no longer required on the system:
+This example shows how to deregister base products when they are no longer required on the system:
 
 ```yaml
 - name: Deregister products from SCC
@@ -93,7 +93,7 @@ This example shows how to deregister products when they are no longer required o
 
 ### Removing Subscriptions
 
-This task removes any subscriptions not listed in the suseconnect_products variable. It ensures the system is only registered with the necessary products, while cleaning up any unnecessary subscriptions. Below is an example where we register only the base subscription for SLES and SL-Micro systems, and remove all other subscriptions that are not listed.
+This task removes subscriptions listed in the suseconnect_products variable. It ensures cleaning up any unnecessary subscriptions. Below is an example where we remove subscriptions.
 
 ```yaml
 - name: Clean up old subscriptions and add base subscription
@@ -101,23 +101,13 @@ This task removes any subscriptions not listed in the suseconnect_products varia
   become: true
   gather_facts: true
   vars:
-    suseconnect_base_product:
-      - product: 'SLES'
-        version: '{{ ansible_distribution_version }}'
-        key: '{{ sles_registration_key }}'
-        arch: '{{ ansible_machine }}'
-      - product: 'SL-Micro'
-        version: '{{ ansible_distribution_version }}'
-        key: '{{ sles_registration_key }}'
-        arch: '{{ ansible_machine }}'
+    suseconnect_remove_subscriptions: true  # Remove subscriptions
 
     suseconnect_subscriptions:
-      - product: 'sle-module-basesystem'
-        version: '{{ ansible_distribution_version }}'
-      - product: 'sle-module-server-applications'
-        version: '{{ ansible_distribution_version }}'
-
-    suseconnect_remove_subscriptions: true  # Remove subscriptions not listed above
+      - product: "sle-module-web-scripting"
+        version: "{{ ansible_distribution_version }}"
+      - product: "PackageHub"
+        version: "{{ ansible_distribution_version }}"
 
   tasks:
     - name: Remove other subscriptions
@@ -139,3 +129,4 @@ This project is licensed under GPL-3.0.
 ### Modified and maintained by
 
 - Harshvardhan Sharma
+- Marcel Mamula

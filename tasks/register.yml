@@ -1,49 +1,38 @@
 ---
 - name: Register system
-  ansible.builtin.command:
-    cmd: >-
-      {{ __suseconnect_register_command }} {{ __command_args }}
-  vars:
-    __command_args: >-
-      {%- if item['key'] is defined %} -r {{ item['key'] }}
-      {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}
-      {% endif %}
   when:
-    - item['product'] in [ansible_distribution]
-    - item['version'] == ansible_distribution_version
-    - ( __suseconnect_status[item['product'] | default(ansible_distribution)] is not defined or
-      ( __suseconnect_status[item['product'] | default(ansible_distribution)]['status'] != 'Registered' or
-      ( item['version'] is defined and __suseconnect_status[item['product'] | default(ansible_distribution)]['version']|string != item['version']|string )))
-      or suseconnect_reregister
-  loop: "{{ suseconnect_base_product }}"
-  loop_control:
-    label: "{{ item['product'] }}"
-  changed_when: false
-  no_log: "{{ __suseconnect_no_log }}"
+    - suseconnect_base_product['product'] in [ansible_distribution]
+    - suseconnect_base_product['version'] == ansible_distribution_version
+    - ( __suseconnect_status[suseconnect_base_product['product']] is not defined or
+        __suseconnect_status[suseconnect_base_product['product']]['status'] != 'Registered'
+      ) or suseconnect_reregister
+  block:
+    - name: Register
+      ansible.builtin.command:
+        cmd: >-
+          {{ __suseconnect_register_command }} {{ __command_args }}
+      vars:
+        __suseconnect_register_command: >-
+          {% if __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.register.cloud }}
+          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+            {{ __suseconnect_commands_dict.register.transactional }}
+          {% else %}
+            {{ __suseconnect_commands_dict.register.general }}
+          {% endif %}
+        __command_args: >-
+          {%- if suseconnect_base_product['key'] is defined %} -r {{ suseconnect_base_product['key'] }}
+          {% endif %}{%- if suseconnect_base_product['email'] is defined %} -e {{ suseconnect_base_product['email'] }}
+          {% endif %}
+      register: __suseconnect_register_result
+      changed_when: "__suseconnect_register_result.rc == 0"
+      failed_when: "__suseconnect_register_result.rc != 0"
+      no_log: "{{ __suseconnect_no_log }}"
 
-- name: Add subscription
-  ansible.builtin.command:
-    cmd: >-
-      {{ __suseconnect_subscribe_command }} {{ __command_args }}
-  vars:
-    __command_args: >-
-      -p {{ [item['product'],
-          item['version'] | default(ansible_distribution_version),
-          item['arch'] | default(ansible_machine)]
-          | join('/')
-      }}
-      {% if item['key'] is defined %}
-        -r {{ item['key'] }}
-      {% endif %}{%- if item['email'] is defined %} -e {{ item['email'] }}
-      {% endif %}
-  when:
-    - item['version'] == ansible_distribution_version
-    - (__suseconnect_status[item['product']] is not defined or
-      __suseconnect_status[item['product']]['status'] != 'Registered' or
-      (item['version'] is defined and __suseconnect_status[item['product']]['version'] | string != item['version'] | string)) or
-     suseconnect_reregister
-  loop: "{{ suseconnect_subscriptions }}"
-  loop_control:
-    label: "{{ item['product'] }}"
-  changed_when: false
-  no_log: "{{ __suseconnect_no_log }}"
+  rescue:
+    - name: Fail if registration failed
+      ansible.builtin.fail:
+        msg: >-
+          Registration failed. Please ensure that the registration code is valid!
+          Error details: {{ __suseconnect_register_result.stderr | default('No error output available') }}
+          {{ __suseconnect_register_result.stdout | default('No stdout output available') }}

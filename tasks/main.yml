@@ -7,6 +7,14 @@
   when:
     - not __suseconnect_is_payg_instance
     - not suseconnect_deregister
+    - suseconnect_base_product | length > 0
+
+- name: Add subscriptions
+  ansible.builtin.include_tasks: add_subscriptions.yml
+  when:
+    - not __suseconnect_is_payg_instance
+    - suseconnect_subscriptions | length > 0
+    - not suseconnect_remove_subscriptions
 
 - name: Remove subscriptions
   ansible.builtin.include_tasks: remove_subscriptions.yml

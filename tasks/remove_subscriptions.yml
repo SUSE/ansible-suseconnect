@@ -2,20 +2,25 @@
 - name: Remove subscriptions
   ansible.builtin.command:
     cmd: >-
-      {{ __suseconnect_subscribe_command }} {{ __command_args }}
+      {{ __suseconnect_remove_subscription_command }} {{ __command_args }}
   vars:
+    __suseconnect_remove_subscription_command: >-
+      {% if ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+        {{ __suseconnect_commands_dict.subscription.transactional }}
+      {% else %}
+        {{ __suseconnect_commands_dict.subscription.general }}
+      {% endif %}
     __command_args: >-
-      -d -p {{ [item['key'] | default(ansible_distribution),
-          item['value']['version'] | default(ansible_distribution_version),
-          item['value']['arch'] | default(ansible_machine)]
-          | join('/') }}
+      -d -p {{ [item['product'],
+          item['version'] | default(ansible_distribution_version),
+          item['arch'] | default(ansible_machine)]
+          | join('/')
+      }}
   when:
-    - item['key'] not in __suseconnect_subscriptions_list
-    - item['key'] != (ansible_distribution)
-    - __suseconnect_subscriptions_list | length > 0
-    - item['value']['status'] == 'Registered'
-  loop: "{{ __suseconnect_status | dict2items }}"
+    - __suseconnect_status[item['product']]['status'] == 'Registered'
+    - item['product'] != (ansible_distribution)
+  loop: "{{ suseconnect_subscriptions }}"
   loop_control:
-    label: "{{ item['key'] }}"
-  changed_when: false
-  no_log: "{{ __suseconnect_no_log }}"
+    label: "{{ item['product'] }}"
+  register: __suseconnect_remove_subscription_result
+  changed_when: "__suseconnect_remove_subscription_result.rc == 0"

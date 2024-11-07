@@ -1,4 +1,7 @@
 ---
+- name: Ensure ansible_facts used by role
+  ansible.builtin.setup:
+
 - name: Fail if not running as root
   ansible.builtin.assert:
     that: ansible_user_uid == 0
@@ -14,7 +17,9 @@
     that:
       - __suseconnect_bin_check.stat.exists
       - __suseconnect_bin_check.stat.executable
-    fail_msg: "This role needs SUSEConnect available and executable!"
+    fail_msg:
+      - "This role needs SUSEConnect available and executable!"
+      - "Ensure that {{ __suseconnect_binary }} is present"
 
 - name: Fail if the os is not SUSE family
   ansible.builtin.assert:
@@ -104,38 +109,3 @@
       loop: "{{ __suseconnect_sanitized_status | default([]) }}"
       loop_control:
         label: "{{ item.identifier }}"
-
-    - name: Generate list of subscriptions
-      ansible.builtin.set_fact:
-        __suseconnect_subscriptions_list: "{{ suseconnect_subscriptions | map(attribute='product') | list }}"
-
-    - name: Set subscription command for add or remove
-      ansible.builtin.set_fact:
-        __suseconnect_subscribe_command: >-
-          {% if ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
-            {{ __suseconnect_commands_dict.subscription.transactional }}
-          {% else %}
-            {{ __suseconnect_commands_dict.subscription.general }}
-          {% endif %}
-
-    - name: Set registration command based on os and instance type
-      ansible.builtin.set_fact:
-        __suseconnect_register_command: >-
-          {% if __suseconnect_is_registercloudguest %}
-            {{ __suseconnect_commands_dict.register.cloud }}
-          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
-            {{ __suseconnect_commands_dict.register.transactional }}
-          {% else %}
-            {{ __suseconnect_commands_dict.register.general }}
-          {% endif %}
-
-    - name: Set deregistration command based on os, instance type
-      ansible.builtin.set_fact:
-        __suseconnect_deregister_command: >-
-          {% if __suseconnect_is_registercloudguest %}
-            {{ __suseconnect_commands_dict.deregister.cloud }}
-          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
-            {{ __suseconnect_commands_dict.deregister.transactional }}
-          {% else %}
-            {{ __suseconnect_commands_dict.deregister.general }}
-          {% endif %}
