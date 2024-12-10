@@ -1,5 +1,8 @@
 ---
 - name: Deregister system
+  when:
+    - item['key'] == (ansible_distribution)
+    - item['value']['status'] != 'Not Registered'
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_deregister_command }}
@@ -12,9 +15,6 @@
       {% else %}
         {{ __suseconnect_commands_dict.deregister.general }}
       {% endif %}
-  when:
-    - item['key'] == (ansible_distribution)
-    - item['value']['status'] != 'Not Registered'
   loop: "{{ __suseconnect_status | dict2items }}"
   loop_control:
     label: "{{ item['key'] }}"

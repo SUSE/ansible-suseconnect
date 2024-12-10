@@ -1,10 +1,11 @@
 ---
+- name: Call suseconnect status
+  ansible.builtin.include_tasks: suseconnect-status.yml
+
 - name: Register system
   when:
-    - suseconnect_base_product['product'] in [ansible_distribution]
-    - suseconnect_base_product['version'] == ansible_distribution_version
-    - ( __suseconnect_status[suseconnect_base_product['product']] is not defined or
-        __suseconnect_status[suseconnect_base_product['product']]['status'] != 'Registered'
+    - ( __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)] is not defined or
+        __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)]['status'] != 'Registered'
       ) or suseconnect_reregister
   block:
     - name: Register

@@ -31,11 +31,11 @@ The following variables can be configured when using this role:
   - `product`
     - **Type**: string
     - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.
-    - **Required**: Yes
+    - **Required**: No
   - `version`
     - **Type**: string
     - **Description**: Version of the product to be activated, defaults to the base OS version.
-    - **Required**: Yes
+    - **Required**: No
   - `arch`
     - **Type**: string
     - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_machine`).
@@ -104,22 +104,15 @@ This example registers a SLES system and activates several modules:
   become: true
   vars:
     suseconnect_base_product:
-      product: 'SLES'
-      version: '{{ ansible_distribution_version }}'
+      product: '{{ ansible_distribution }}'
       key: '{{ sles_registration_key }}'
-      arch: '{{ ansible_machine }}'
 
     suseconnect_subscriptions:
       - product: 'sle-module-basesystem'
-        version: '{{ ansible_distribution_version }}'
       - product: 'sle-module-containers'
-        version: '{{ ansible_distribution_version }}'
       - product: 'sle-module-server-applications'
-        version: '{{ ansible_distribution_version }}'
       - product: 'sle-module-web-scripting'
-        version: '{{ ansible_distribution_version }}'
       - product: 'PackageHub'
-        version: '{{ ansible_distribution_version }}'
 
   tasks:
     - name: Register system and modules with SUSE Customer Center
@@ -157,9 +150,7 @@ This task removes the subscriptions specified in the `suseconnect_subscriptions`
 
     suseconnect_subscriptions:
       - product: "sle-module-web-scripting"
-        version: "{{ ansible_distribution_version }}"
       - product: "PackageHub"
-        version: "{{ ansible_distribution_version }}"
 
   tasks:
     - name: Remove other subscriptions
