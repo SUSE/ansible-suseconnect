@@ -1,0 +1,39 @@
+---
+- name: Call suseconnect status
+  when: not __suseconnect_is_payg_instance
+  block:
+    - name: Save registration status into temp var
+      ansible.builtin.command:
+        cmd: "{{ __suseconnect_binary }} -s"
+      register: __suseconnect_tmp_status
+      changed_when: false
+      no_log: "{{ __suseconnect_no_log }}"
+
+    - name: Sanitize registration output
+      ansible.builtin.set_fact:
+        __suseconnect_sanitized_status: >-
+          {{
+            __suseconnect_tmp_status.stdout
+            | from_json
+            | json_query(
+                '[].{
+                  identifier: identifier,
+                  version: version,
+                  arch: arch,
+                  status: status
+                }'
+              )
+          }}
+
+    - name: Convert registration status into usable data structure
+      ansible.builtin.set_fact:
+        __suseconnect_status: >-
+          {{ __suseconnect_status | combine({
+          item['identifier']: {
+            'status': item['status'],
+            'version': item['version'],
+            'arch': item['arch']
+          }}) }}
+      loop: "{{ __suseconnect_sanitized_status | default([]) }}"
+      loop_control:
+        label: "{{ item.identifier }}"
