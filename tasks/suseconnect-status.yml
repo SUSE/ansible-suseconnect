@@ -1,6 +1,5 @@
 ---
 - name: Call suseconnect status
-  when: not __suseconnect_is_payg_instance
   block:
     - name: Save registration status into temp var
       ansible.builtin.command:
