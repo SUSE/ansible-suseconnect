@@ -101,8 +101,8 @@ This example registers a SLES system and activates several modules:
   hosts: all
   vars:
     suseconnect_base_product:
-      product: '{{ ansible_distribution }}'
       key: '{{ sles_registration_key }}'
+      product: '{{ ansible_distribution }}'
 
     suseconnect_subscriptions:
       - {name: "sle-module-containers", state: enabled}
@@ -127,7 +127,7 @@ This task adds or removes modules and extensions. It registers or derigisters th
       - {name: "sle-module-containers", state: enabled}
       - {name: "PackageHub", state: disabled}
       - {name: "sle-module-python3", state: enabled}
-      - {name: "sle-ha", state: enabled, key: ""}
+      - {name: "sle-ha", state: enabled, key: "REGISTRATION-KEY"}
 
   tasks:
     - name: Remove other subscriptions

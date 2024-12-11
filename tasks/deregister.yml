@@ -1,8 +1,29 @@
 ---
+# - name: Deregister system
+#   when:
+#     - item['key'] == (ansible_distribution)
+#     - item['value']['status'] != 'Not Registered'
+#   ansible.builtin.command:
+#     cmd: >-
+#       {{ __suseconnect_deregister_command }}
+#   vars:
+#     __suseconnect_deregister_command: >-
+#       {% if __suseconnect_is_registercloudguest %}
+#         {{ __suseconnect_commands_dict.deregister.cloud }}
+#       {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+#         {{ __suseconnect_commands_dict.deregister.transactional }}
+#       {% else %}
+#         {{ __suseconnect_commands_dict.deregister.general }}
+#       {% endif %}
+#   loop: "{{ __suseconnect_status | dict2items }}"
+#   loop_control:
+#     label: "{{ item['key'] }}"
+#   register: __suseconnect_deregister_result
+#   changed_when: "__suseconnect_deregister_result.rc == 0"
+
 - name: Deregister system
   when:
-    - item['key'] == (ansible_distribution)
-    - item['value']['status'] != 'Not Registered'
+    - __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)]['status'] == 'Registered'
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_deregister_command }}
@@ -15,8 +36,5 @@
       {% else %}
         {{ __suseconnect_commands_dict.deregister.general }}
       {% endif %}
-  loop: "{{ __suseconnect_status | dict2items }}"
-  loop_control:
-    label: "{{ item['key'] }}"
   register: __suseconnect_deregister_result
   changed_when: "__suseconnect_deregister_result.rc == 0"

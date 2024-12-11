@@ -4,8 +4,10 @@
 
 - name: Manage modules and extensions
   when:
-    - (item['state'] == 'enabled' and (__suseconnect_status[item['name']] is not defined or __suseconnect_status[item['name']]['status'] != 'Registered')) or
-      (item['state'] == 'disabled' and __suseconnect_status[item['name']] is defined and __suseconnect_status[item['name']]['status'] == 'Registered')
+    - (item['state'] | default('enabled') == 'enabled' and (__suseconnect_status[item['name']] is not defined or
+      __suseconnect_status[item['name']]['status'] != 'Registered')) or
+      (item['state'] | default('enabled') == 'disabled' and __suseconnect_status[item['name']] is defined and
+      __suseconnect_status[item['name']]['status'] == 'Registered')
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_subscribe_command }} {{ __command_args }}
@@ -17,7 +19,7 @@
         {{ __suseconnect_commands_dict.subscription.general }}
       {% endif %}
     __command_args: >-
-      {% if item['state'] == 'disabled' %}
+      {% if (item['state'] | default('enabled')) == 'disabled' %}
         -d
       {% endif %}
       -p {{ [item['name'],
