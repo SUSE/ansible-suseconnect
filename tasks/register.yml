@@ -1,7 +1,4 @@
 ---
-- name: Call suseconnect status
-  ansible.builtin.include_tasks: suseconnect-status.yml
-
 - name: Register system
   when:
     - ( __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)] is not defined or

@@ -3,19 +3,19 @@
   ansible.builtin.include_tasks: prechecks.yml
 
 - name: Register system
+  ansible.builtin.include_tasks: register.yml
   when:
     - not __suseconnect_is_payg_instance
     - not suseconnect_deregister
-  ansible.builtin.include_tasks: register.yml
 
 - name: Manage subscriptions
+  ansible.builtin.include_tasks: manage-subscriptions.yml
   when:
     - not __suseconnect_is_payg_instance
-    - suseconnect_subscriptions | selectattr('product', 'defined') | list | length > 0
-  ansible.builtin.include_tasks: manage-subscriptions.yml
+    - suseconnect_subscriptions is defined and suseconnect_subscriptions | selectattr('name', 'defined') | list | length > 0
 
 - name: Deregister system
+  ansible.builtin.include_tasks: deregister.yml
   when:
     - not __suseconnect_is_payg_instance
     - suseconnect_deregister | bool
-  ansible.builtin.include_tasks: deregister.yml

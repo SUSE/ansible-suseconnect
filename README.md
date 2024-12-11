@@ -7,9 +7,8 @@ This Ansible role is used to manage SUSE Linux system registrations with the SUS
 This role includes:
 
 - Registration of a SUSE system to SCC/SMT.
-- Activation of specific add-on products or modules.
+- Activation or removal of specific add-on products or modules.
 - Deregistration of systems or products.
-- Removal of subscriptions.
 - Precheck tasks to ensure a smooth registration process.
 
 ## Requirements
@@ -18,7 +17,6 @@ Before using this role, ensure that you have the following:
 
 - A valid registration key for your SUSE products, which can be obtained with your SUSE subscription.
 - For some products, additional registration keys are required.
-- You need to know the internal product names for the products you're registering. These names can be found in [PRODUCTS.md](PRODUCTS.md).
 
 ## Role Variables
 
@@ -32,6 +30,10 @@ The following variables can be configured when using this role:
     - **Type**: string
     - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.
     - **Required**: No
+  - `key`
+    - **Type**: string
+    - **Description**: Registration key for the product.
+    - **Required**: Yes
   - `version`
     - **Type**: string
     - **Description**: Version of the product to be activated, defaults to the base OS version.
@@ -40,10 +42,6 @@ The following variables can be configured when using this role:
     - **Type**: string
     - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_machine`).
     - **Required**: No
-  - `key`
-    - **Type**: string
-    - **Description**: Registration key for the product.
-    - **Required**: Yes
   - `email`
     - **Type**: string
     - **Description**: Email address used in SCC for registration.
@@ -54,12 +52,17 @@ The following variables can be configured when using this role:
 - **Type**: list
 - **Description**: List of additional modules or products to be registered on the target system.
 
-  Each dictionary in the list can include the following keys:
+  Each  item is a dictionary containing the following keys:
 
-  - `product`
+  - `name`
     - **Type**: string
     - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.
     - **Required**: Yes
+  - `state`
+    - **Type**: string
+    - **Description**: The state of the subscription, which can be either enabled or disabled. If not specified, the default state is enabled.
+    - **Required**: No
+    - **Default**: enabled
   - `version`
     - **Type**: string
     - **Description**: Version of the product to be activated, defaults to the base OS version.
@@ -80,12 +83,7 @@ The following variables can be configured when using this role:
 ### suseconnect_reregister
 
 - **Type**: bool
-- **Description**: Whether to force re-registration of all products, regardless of current status (default: false).
-
-### suseconnect_remove_subscriptions
-
-- **Type**: bool
-- **Description**: If set to `true`, this will remove the subscriptions that are mentioned in `suseconnect_subscriptions` (default: false).
+- **Description**: Whether to force re-registration of base product, regardless of current status (default: false).
 
 ### suseconnect_deregister
 
@@ -101,18 +99,15 @@ This example registers a SLES system and activates several modules:
 ```yaml
 - name: Register with SCC and activate modules
   hosts: all
-  become: true
   vars:
     suseconnect_base_product:
       product: '{{ ansible_distribution }}'
       key: '{{ sles_registration_key }}'
 
     suseconnect_subscriptions:
-      - product: 'sle-module-basesystem'
-      - product: 'sle-module-containers'
-      - product: 'sle-module-server-applications'
-      - product: 'sle-module-web-scripting'
-      - product: 'PackageHub'
+      - {name: "sle-module-containers", state: enabled}
+      - {name: "PackageHub", state: disabled}
+      - {name: "sle-module-python3", state: enabled}
 
   tasks:
     - name: Register system and modules with SUSE Customer Center
@@ -127,7 +122,6 @@ This example shows how to deregister base products when they are no longer requi
 ```yaml
 - name: Deregister products from SCC
   hosts: all
-  become: true
   vars:
     suseconnect_deregister: true
 
@@ -137,20 +131,20 @@ This example shows how to deregister base products when they are no longer requi
         name: suseconnect
 ```
 
-### Removing Subscriptions
+### Adding or deleting modules and extensions
 
-This task removes the subscriptions specified in the `suseconnect_subscriptions` variable by setting `suseconnect_remove_subscriptions` to `true`. Below is an example of removing subscriptions.
+This task adds or removes modules and extensions. It registers or derigisters the components and enables or disables their repositories.
 
 ```yaml
-- name: Clean up old subscriptions and add base subscription
+- name: Adding or deleting modules and extensions
   hosts: all
-  become: true
   vars:
-    suseconnect_remove_subscriptions: true  # Remove subscriptions
 
     suseconnect_subscriptions:
-      - product: "sle-module-web-scripting"
-      - product: "PackageHub"
+      - {name: "sle-module-containers", state: enabled}
+      - {name: "PackageHub", state: disabled}
+      - {name: "sle-module-python3", state: enabled}
+      - {name: "sle-ha", state: enabled, key: ""}
 
   tasks:
     - name: Remove other subscriptions

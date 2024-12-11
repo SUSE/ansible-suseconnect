@@ -70,3 +70,7 @@
       ansible.builtin.debug:
         msg: "Warning: This is a PAYG instance. Skipping registration steps to avoid conflicts."
       when: __suseconnect_is_payg_instance
+
+- name: Call suseconnect status
+  ansible.builtin.include_tasks: suseconnect-status.yml
+  when: not __suseconnect_is_payg_instance

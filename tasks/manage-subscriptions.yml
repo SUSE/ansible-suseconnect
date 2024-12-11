@@ -2,12 +2,10 @@
 - name: Call suseconnect status
   ansible.builtin.include_tasks: suseconnect-status.yml
 
-- name: Add subscription
+- name: Manage modules and extensions
   when:
-    - not suseconnect_remove_subscriptions
-    - (__suseconnect_status[item['product']] is not defined or
-      __suseconnect_status[item['product']]['status'] != 'Registered') or
-      suseconnect_reregister
+    - (item['state'] == 'enabled' and (__suseconnect_status[item['name']] is not defined or __suseconnect_status[item['name']]['status'] != 'Registered')) or
+      (item['state'] == 'disabled' and __suseconnect_status[item['name']] is defined and __suseconnect_status[item['name']]['status'] == 'Registered')
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_subscribe_command }} {{ __command_args }}
@@ -19,7 +17,10 @@
         {{ __suseconnect_commands_dict.subscription.general }}
       {% endif %}
     __command_args: >-
-      -p {{ [item['product'],
+      {% if item['state'] == 'disabled' %}
+        -d
+      {% endif %}
+      -p {{ [item['name'],
           item['version'] | default(ansible_distribution_version),
           item['arch'] | default(ansible_machine)]
           | join('/')
@@ -30,34 +31,7 @@
       {% endif %}
   loop: "{{ suseconnect_subscriptions }}"
   loop_control:
-    label: "{{ item['product'] }}"
+    label: "{{ item['name'] }}"
   register: __suseconnect_subscribe_result
   changed_when: "__suseconnect_subscribe_result.rc == 0"
   no_log: "{{ 'true' if item['key'] is defined else 'false' }}"
-
-- name: Remove subscriptions
-  when:
-    - suseconnect_remove_subscriptions | bool
-    - __suseconnect_status[item['product']]['status'] == 'Registered'
-    - item['product'] != (ansible_distribution)
-  ansible.builtin.command:
-    cmd: >-
-      {{ __suseconnect_remove_subscription_command }} {{ __command_args }}
-  vars:
-    __suseconnect_remove_subscription_command: >-
-      {% if ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
-        {{ __suseconnect_commands_dict.subscription.transactional }}
-      {% else %}
-        {{ __suseconnect_commands_dict.subscription.general }}
-      {% endif %}
-    __command_args: >-
-      -d -p {{ [item['product'],
-          item['version'] | default(ansible_distribution_version),
-          item['arch'] | default(ansible_machine)]
-          | join('/')
-      }}
-  loop: "{{ suseconnect_subscriptions }}"
-  loop_control:
-    label: "{{ item['product'] }}"
-  register: __suseconnect_remove_subscription_result
-  changed_when: "__suseconnect_remove_subscription_result.rc == 0"
