@@ -50,9 +50,9 @@ The following variables can be configured when using this role:
 ### suseconnect_subscriptions
 
 - **Type**: list
-- **Description**: List of additional modules or products to be registered on the target system.
+- **Description**: List of additional modules or products to be added or removed on the target system.
 
-  Each  item is a dictionary containing the following keys:
+  Each item is a dictionary containing the following keys:
 
   - `name`
     - **Type**: string
@@ -115,22 +115,6 @@ This example registers a SLES system and activates several modules:
         name: suseconnect
 ```
 
-### Deregistering Products
-
-This example shows how to deregister base products when they are no longer required on the system:
-
-```yaml
-- name: Deregister products from SCC
-  hosts: all
-  vars:
-    suseconnect_deregister: true
-
-  tasks:
-    - name: Deregister products from SUSE Customer Center
-      ansible.builtin.include_role:
-        name: suseconnect
-```
-
 ### Adding or deleting modules and extensions
 
 This task adds or removes modules and extensions. It registers or derigisters the components and enables or disables their repositories.
@@ -148,6 +132,22 @@ This task adds or removes modules and extensions. It registers or derigisters th
 
   tasks:
     - name: Remove other subscriptions
+      ansible.builtin.include_role:
+        name: suseconnect
+```
+
+### Deregistering Products
+
+This example shows how to deregister base products when they are no longer required on the system:
+
+```yaml
+- name: Deregister products from SCC
+  hosts: all
+  vars:
+    suseconnect_deregister: true
+
+  tasks:
+    - name: Deregister products from SUSE Customer Center
       ansible.builtin.include_role:
         name: suseconnect
 ```
