@@ -123,7 +123,6 @@ This task adds or removes modules and extensions. It registers or derigisters th
 - name: Adding or deleting modules and extensions
   hosts: all
   vars:
-
     suseconnect_subscriptions:
       - {name: "sle-module-containers", state: enabled}
       - {name: "PackageHub", state: disabled}
