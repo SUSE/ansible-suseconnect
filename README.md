@@ -28,7 +28,7 @@ The following variables can be configured when using this role:
 - **Description**: Defines the base product that should be activated on the target system. The dictionary should include the following keys:
   - `product`
     - **Type**: string
-    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list.
+    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list, defaults to (`ansible_distribution`)
     - **Required**: No
   - `key`
     - **Type**: string
@@ -65,7 +65,7 @@ The following variables can be configured when using this role:
     - **Default**: enabled
   - `version`
     - **Type**: string
-    - **Description**: Version of the product to be activated, defaults to the base OS version.
+    - **Description**: Version of the product to be activated, defaults to the base OS version, defaults to (`ansible_distribution_version`).
     - **Required**: No
   - `arch`
     - **Type**: string
@@ -154,15 +154,3 @@ This example shows how to deregister base products when they are no longer requi
 ## License
 
 This project is licensed under GPL-3.0.
-
-## Author Information
-
-### Modified and maintained by
-
-- Harshvardhan Sharma
-- Marcel Mamula
-
-### Originally authored by
-
-- Sebastian Meyer (<meyer@b1-systems.de>)  
-  B1 Systems GmbH
