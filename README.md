@@ -9,6 +9,8 @@ This role includes:
 - Registration of a SUSE system to SCC/SMT.
 - Activation or removal of specific add-on products or modules.
 - Deregistration of systems or products.
+- Compatibility with public cloud environments (e.g., prevent registration against SCC for PAYG instances, use `registercloudguest` where appropriate).
+- Support for transactional update register on SL-Micro.
 - Precheck tasks to ensure a smooth registration process.
 
 ## Requirements
