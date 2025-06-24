@@ -5,6 +5,7 @@ __suseconnect_status: {}
 __suseconnect_is_payg_instance: null
 __suseconnect_is_registercloudguest: null
 __suseconnect_no_log: true
+__suseconnect_sanitized_status: []
 
 __suseconnect_commands_dict:
   subscription:

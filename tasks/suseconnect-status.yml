@@ -10,19 +10,16 @@
 
     - name: Sanitize registration output
       ansible.builtin.set_fact:
-        __suseconnect_sanitized_status: >-
-          {{
-            __suseconnect_tmp_status.stdout
-            | from_json
-            | json_query(
-                '[].{
-                  identifier: identifier,
-                  version: version,
-                  arch: arch,
-                  status: status
-                }'
-              )
-          }}
+        __suseconnect_sanitized_status: "{{ __suseconnect_sanitized_status + [ {
+          'identifier': item.identifier,
+          'version': item.version,
+          'arch': item.arch,
+          'status': item.status
+         } ] }}"
+      loop: "{{ __suseconnect_tmp_status.stdout | from_json }}"
+      loop_control:
+        label: "{{ item.identifier | default('unknown') }}"
+      no_log: "{{ __suseconnect_no_log }}"
 
     - name: Convert registration status into usable data structure
       ansible.builtin.set_fact:
