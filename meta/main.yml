@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: Harshvardhan Sharma <harshvardhan.sharma@suse.com>
+  description: Register Your SLES System With SUSE Customer Center
+  company: Suse
+  license: GPLv3
+  min_ansible_version: "2.9"
+  platforms:
+    - name: SLES
+      versions:
+      - 16
+  galaxy_tags:
+    - sles
+  dependencies: []
