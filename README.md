@@ -2,11 +2,11 @@
 
 ![Ansible Lint](https://github.com/HVSharma12/ansible-suseconnect/actions/workflows/ansible-lint.yml/badge.svg?branch=main)
 
-This Ansible role is used to manage SUSE Linux system registrations with the SUSE Customer Center (SCC) or a local Subscription Management Tool (SMT) server. It automates the process of registering and deregistering systems, as well as managing additional products and modules on a SUSE system
+This Ansible role is used to manage SUSE Linux system registrations with the SUSE Customer Center (SCC) or a local Subscription Management Tool (SMT)/Repository Mirroring Tool (RMT) server. It automates the process of registering and deregistering systems, as well as managing additional products and modules on a SUSE system
 
 This role includes:
 
-- Registration of a SUSE system to SCC/SMT.
+- Registration of a SUSE system to SCC/SMT/RMT.
 - Activation or removal of specific add-on products or modules.
 - Deregistration of systems or products.
 - Compatibility with public cloud environments (e.g., prevent registration against SCC for PAYG instances, use `registercloudguest` where appropriate).
@@ -119,7 +119,7 @@ This example registers a SLES system and activates several modules:
 
 ### Adding or deleting modules and extensions
 
-This task adds or removes modules and extensions. It registers or derigisters the components and enables or disables their repositories.
+This task adds or removes modules and extensions. It registers or deregisters the components and enables or disables their repositories.
 
 ```yaml
 - name: Adding or deleting modules and extensions
