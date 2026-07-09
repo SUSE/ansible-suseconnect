@@ -7,6 +7,10 @@
       register: __suseconnect_tmp_status
       changed_when: false
       no_log: "{{ __suseconnect_no_log }}"
+      environment: "{{
+        {} if __suseconnect_is_registercloudguest
+          else (__suseconnect_proxy_env | default({}))
+        }}"  # do not set proxy for cloud commands
 
     - name: Sanitize registration output
       ansible.builtin.set_fact:

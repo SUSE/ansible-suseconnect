@@ -37,3 +37,7 @@
   register: __suseconnect_subscribe_result
   changed_when: "__suseconnect_subscribe_result.rc == 0"
   no_log: "{{ 'true' if item['key'] is defined else 'false' }}"
+  environment: "{{
+    {} if __suseconnect_is_registercloudguest
+      else (__suseconnect_proxy_env | default({}))
+    }}"  # do not set proxy for cloud commands
