@@ -26,6 +26,9 @@
     that: ansible_os_family == "Suse" or ansible_distribution == "SL-Micro"
     fail_msg: "This role is only supported on SUSE family operating systems."
 
+# On-prem Hyper-V has the identical product_name/chassis_vendor but a RANDOM asset tag,
+# so keying on the tag avoids misidentifying on-prem Hyper-V as Azure
+
 - name: "SUSEConnect - Determine if the instance is a cloud instance"
   ansible.builtin.set_fact:
     __suseconnect_is_cloud_instance: >-
@@ -35,7 +38,7 @@
         ("amazon" in ansible_product_version | lower) or
         (ansible_product_name == 'Google Compute Engine') or
         (ansible_chassis_asset_tag == 'ibmcloud') or
-        (ansible_product_name == 'Virtual Machine' and ansible_chassis_vendor == 'Microsoft Corporation')
+      (ansible_chassis_asset_tag == '7783-7084-3265-9085-8269-3286-77')
       }}
 
 - name: Prevent registration against scc for payg instances
