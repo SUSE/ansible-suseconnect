@@ -50,10 +50,15 @@
       ansible.builtin.set_fact:
         __suseconnect_is_registercloudguest: "{{ true if __suseconnect_registercloudguest_stat.stat.exists else false }}"
 
-    - name: Ensure required packages are installed
-      ansible.builtin.package:
-        name: "{{ __suseconnect_required_package }}"
-        state: present
+    - name: Gather information about installed packages as facts
+      ansible.builtin.package_facts:
+
+    - name: Fail if required packages are not installed
+      ansible.builtin.assert:
+        that: __suseconnect_required_package is in ansible_facts.packages
+        fail_msg:
+          - "This role needs {{ __suseconnect_required_package }} package installed!"
+          - "Ensure that {{ __suseconnect_required_package }} package is installed"
 
     - name: Skip if PAYG to prevent improper registration
       ansible.builtin.command:
