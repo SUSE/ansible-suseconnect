@@ -26,6 +26,10 @@
       changed_when: "__suseconnect_register_result.rc == 0"
       failed_when: "__suseconnect_register_result.rc != 0"
       no_log: "{{ __suseconnect_no_log }}"
+      environment: "{{
+        {} if __suseconnect_is_registercloudguest
+          else (__suseconnect_proxy_env | default({}))
+        }}"  # do not set proxy for cloud commands
 
   rescue:
     - name: Fail if registration failed

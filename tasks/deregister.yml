@@ -16,3 +16,7 @@
       {% endif %}
   register: __suseconnect_deregister_result
   changed_when: "__suseconnect_deregister_result.rc == 0"
+  environment: "{{
+    {} if __suseconnect_is_registercloudguest
+      else (__suseconnect_proxy_env | default({}))
+    }}"  # do not set proxy for cloud commands

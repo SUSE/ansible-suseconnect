@@ -76,6 +76,28 @@
         msg: "Warning: This is a PAYG instance. Skipping registration steps to avoid conflicts."
       when: __suseconnect_is_payg_instance
 
+- name: Slurp /etc/sysconfig/proxy
+  ansible.builtin.slurp:
+    src: /etc/sysconfig/proxy
+  register: proxy_file
+  failed_when: false
+  changed_when: false
+
+- name: Build proxy environment dictionary conditionally
+  ansible.builtin.set_fact:
+    __suseconnect_proxy_env: "{{ __suseconnect_proxy_env | default({}) | combine({item[0]: item[1]}) }}"
+  vars:
+    raw_config: "{{ proxy_file.content | b64decode }}"
+    is_proxy_enabled: "{{ (raw_config | regex_findall('^\\s*PROXY_ENABLED\\s*=\\s*\"yes\"', multiline=True) | length) > 0 }}"
+    proxy_lines: "{{ raw_config | regex_findall('^\\s*([A-Z0-9_]+)\\s*=\\s*\"([^\"]*)\"', multiline=True) }}"
+  loop: "{{ proxy_lines }}"
+  when:
+    - is_proxy_enabled
+    - item[1] | length > 0
+    - item[0] != 'PROXY_ENABLED'
+  check_mode: false
+  changed_when: false
+
 - name: Call suseconnect status
   ansible.builtin.include_tasks: suseconnect-status.yml
   when: not __suseconnect_is_payg_instance
