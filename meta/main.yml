@@ -1,5 +1,7 @@
 ---
 galaxy_info:
+  namespace: suse
+  role_name: suseconnect
   author: Harshvardhan Sharma <harshvardhan.sharma@suse.com>
   description: Register Your SLES System With SUSE Customer Center
   company: Suse
@@ -8,7 +10,8 @@ galaxy_info:
   platforms:
     - name: SLES
       versions:
-      - 16
+        - all
   galaxy_tags:
     - sles
-  dependencies: []
+
+dependencies: []
