@@ -1,6 +1,6 @@
 # SUSEConnect
 
-![Ansible Lint](https://github.com/HVSharma12/ansible-suseconnect/actions/workflows/ansible-lint.yml/badge.svg?branch=main)
+![Ansible Lint](https://github.com/SUSE/ansible-suseconnect/actions/workflows/ansible-lint.yml/badge.svg?branch=main)
 
 This Ansible role is used to manage SUSE Linux system registrations with the SUSE Customer Center (SCC) or a local Subscription Management Tool (SMT)/Repository Mirroring Tool (RMT) server. It automates the process of registering and deregistering systems, as well as managing additional products and modules on a SUSE system
 
@@ -12,6 +12,7 @@ This role includes:
 - Compatibility with public cloud environments (e.g., prevent registration against SCC for PAYG instances, use `registercloudguest` where appropriate).
 - Support for transactional update register on SL-Micro.
 - Precheck tasks to ensure a smooth registration process.
+- Honors the system proxy configuration from `/etc/sysconfig/proxy`.
 
 ## Requirements
 
@@ -19,6 +20,13 @@ Before using this role, ensure that you have the following:
 
 - A valid registration key for your SUSE products, which can be obtained with your SUSE subscription.
 - For some products, additional registration keys are required.
+- The role must run as **root**. It does not escalate privileges itself, so run
+ it with `become: true` (or connect as root).
+- The `SUSEConnect` binary must be present and executable at `/usr/sbin/SUSEConnect`.
+- A SUSE operating system (`ansible_os_family == "Suse"`) or SL-Micro.
+- On public cloud instances only: the `python-instance-billing-flavor-check`
+ package must be installed. The role uses it to detect PAYG instances and will
+ fail on a cloud instance if it is missing.
 
 ## Role Variables
 
@@ -27,22 +35,15 @@ The following variables can be configured when using this role:
 ### suseconnect_base_product
 
 - **Type**: dict
-- **Description**: Defines the base product that should be activated on the target system. The dictionary should include the following keys:
+- **Default**: `{}`
+- **Description**: Defines the base product registration. If omitted (or if `key` is not set), registration is skipped entirely. The dictionary should include the following keys:
   - `product`
     - **Type**: string
-    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list, defaults to (`ansible_distribution`)
+    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list, defaults to (`ansible_distribution`). This is used to look up the current registration status and decide whether registration is needed; it is not passed to `SUSEConnect`.
     - **Required**: No
   - `key`
     - **Type**: string
-    - **Description**: Registration key for the product.
-    - **Required**: Yes
-  - `version`
-    - **Type**: string
-    - **Description**: Version of the product to be activated, defaults to the base OS version.
-    - **Required**: No
-  - `arch`
-    - **Type**: string
-    - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_machine`).
+    - **Description**: Registration key for the product. If it is not set, the system is not registered and the task is skipped.
     - **Required**: No
   - `email`
     - **Type**: string
@@ -52,7 +53,7 @@ The following variables can be configured when using this role:
 ### suseconnect_subscriptions
 
 - **Type**: list
-- **Description**: List of additional modules or products to be added or removed on the target system.
+- **Description**: List of additional modules or products to be added or removed on the target system. The system must already be registered before modules can be activated.
 
   Each item is a dictionary containing the following keys:
 
@@ -67,7 +68,7 @@ The following variables can be configured when using this role:
     - **Default**: enabled
   - `version`
     - **Type**: string
-    - **Description**: Version of the product to be activated, defaults to the base OS version, defaults to (`ansible_distribution_version`).
+    - **Description**: Version of the product to be activated, defaults to the base OS version (`ansible_distribution_version`).
     - **Required**: No
   - `arch`
     - **Type**: string
@@ -85,12 +86,28 @@ The following variables can be configured when using this role:
 ### suseconnect_reregister
 
 - **Type**: bool
-- **Description**: Whether to force re-registration of base product, regardless of current status (default: false).
+- **Description**: Whether to force re-registration of base product, regardless of current registration status (default: false). Requires `suseconnect_base_product.key` to be set.
 
 ### suseconnect_deregister
 
 - **Type**: bool
 - **Description**: Whether to deregister the system (default: false).
+
+## Proxy Support
+
+The role reads `/etc/sysconfig/proxy` on the managed node. If `PROXY_ENABLED="yes"`
+is set, the proxy variables defined in that file are applied to the `SUSEConnect`
+commands the role runs. Proxy settings are deliberately not applied to
+`registercloudguest` commands on public cloud instances. No configuration is
+required — the file is read automatically if present.
+
+## Public Cloud Behavior
+
+The role detects public cloud instances (AWS, GCE, Azure, IBM Cloud) from system
+facts. On a **PAYG** instance the role does not register, manage subscriptions,
+or deregister — registration is handled by the cloud provider. On a **BYOS**
+cloud instance the role registers normally, using `registercloudguest` where
+that tool is present.
 
 ## Example Task
 
