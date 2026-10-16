@@ -1,7 +1,7 @@
 ---
 - name: Deregister system
   when:
-    - __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)]['status'] == 'Registered'
+    - __suseconnect_status[suseconnect_base_product['product'] | default(ansible_facts['distribution'])]['status'] == 'Registered'
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_deregister_command }}

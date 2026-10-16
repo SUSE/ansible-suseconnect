@@ -10,7 +10,8 @@ __suseconnect_sanitized_status: []
 __suseconnect_commands_dict:
   subscription:
     cloud: "registercloudguest"
-    transactional: "transactional-update register"
+    # --continue builds on a snapshot an earlier change left pending instead of replacing it
+    transactional: "transactional-update --continue register"
     general: "/usr/sbin/SUSEConnect"
   register:
     cloud: "registercloudguest"
@@ -18,5 +19,5 @@ __suseconnect_commands_dict:
     general: "/usr/sbin/SUSEConnect"
   deregister:
     cloud: "registercloudguest --clean"
-    transactional: "transactional-update register -d"
+    transactional: "transactional-update --continue register -d"
     general: "/usr/sbin/SUSEConnect -d"
