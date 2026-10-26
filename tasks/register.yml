@@ -36,5 +36,10 @@
       ansible.builtin.fail:
         msg: >-
           Registration failed. Please ensure that the registration code is valid!
-          Error details: {{ __suseconnect_register_result.stderr | default('No error output available') }}
+          Error details: {{ __suseconnect_details | replace(__suseconnect_key, '********') if __suseconnect_key
+            else __suseconnect_details }}
+      vars:
+        __suseconnect_key: "{{ suseconnect_base_product['key'] | string }}"
+        __suseconnect_details: >-
+          {{ __suseconnect_register_result.stderr | default('No error output available') }}
           {{ __suseconnect_register_result.stdout | default('No stdout output available') }}
