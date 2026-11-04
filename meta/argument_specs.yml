@@ -1,0 +1,81 @@
+---
+argument_specs:
+  main:
+    short_description: Register a SUSE system with SUSEConnect.
+    description: >
+      Registers and deregisters a SUSE system with SUSEConnect, and
+      activates or removes add-on products and modules.
+    options:
+      suseconnect_base_product:
+        type: dict
+        description: >
+          The base product registration. If omitted, empty, or if `key` is
+          not set, registration is skipped.
+        options:
+          product:
+            type: str
+            description: >
+              Internal product name, see PRODUCTS.md. Used to look up the
+              current registration status; it is not passed to SUSEConnect.
+          key:
+            type: str
+            no_log: true
+            description: Registration key for the product.
+          email:
+            type: str
+            description: Email address used in SCC for registration.
+          version:
+            type: str
+            description: >
+              Not used. Accepted so that playbooks written for releases
+              before 1.0.2 keep working.
+          arch:
+            type: str
+            description: >
+              Not used. Accepted so that playbooks written for releases
+              before 1.0.2 keep working.
+      suseconnect_subscriptions:
+        type: list
+        elements: dict
+        default: []
+        description: >
+          Additional modules or products to add or remove. The system must
+          already be registered before modules can be activated.
+        options:
+          name:
+            type: str
+            required: true
+            description: Internal product name, see PRODUCTS.md.
+          state:
+            type: str
+            choices:
+              - enabled
+              - disabled
+            default: enabled
+            description: Whether the subscription is enabled or disabled.
+          version:
+            type: str
+            description: >
+              Version of the product to activate. Defaults to the base OS
+              version.
+          arch:
+            type: str
+            description: >
+              Architecture of the product. Defaults to the OS architecture.
+          key:
+            type: str
+            no_log: true
+            description: Additional registration key, if the product needs one.
+          email:
+            type: str
+            description: Email address used in SCC for registration.
+      suseconnect_reregister:
+        type: bool
+        default: false
+        description: >
+          Force re-registration of the base product, regardless of the
+          current registration status. Requires `suseconnect_base_product.key`.
+      suseconnect_deregister:
+        type: bool
+        default: false
+        description: Deregister the system.
