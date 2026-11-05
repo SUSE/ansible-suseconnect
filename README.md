@@ -10,7 +10,7 @@ This role includes:
 - Activation or removal of specific add-on products or modules.
 - Deregistration of systems or products.
 - Compatibility with public cloud environments (e.g., prevent registration against SCC for PAYG instances, use `registercloudguest` where appropriate).
-- Support for transactional update register on SL-Micro.
+- Support for transactional update register on SL-Micro and SLES Immutable.
 - Precheck tasks to ensure a smooth registration process.
 - Honors the system proxy configuration from `/etc/sysconfig/proxy`.
 

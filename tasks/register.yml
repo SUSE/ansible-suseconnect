@@ -13,7 +13,7 @@
         __suseconnect_register_command: >-
           {% if __suseconnect_is_registercloudguest %}
             {{ __suseconnect_commands_dict.register.cloud }}
-          {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+          {% elif __suseconnect_is_transactional and not __suseconnect_is_registercloudguest %}
             {{ __suseconnect_commands_dict.register.transactional }}
           {% else %}
             {{ __suseconnect_commands_dict.register.general }}
