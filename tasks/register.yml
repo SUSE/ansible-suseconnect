@@ -1,8 +1,8 @@
 ---
 - name: Register system
   when:
-    - ( __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)] is not defined or
-        __suseconnect_status[suseconnect_base_product['product'] | default(ansible_distribution)]['status'] != 'Registered'
+    - ( __suseconnect_status[suseconnect_base_product['product'] | default(ansible_facts['distribution'])] is not defined or
+        __suseconnect_status[suseconnect_base_product['product'] | default(ansible_facts['distribution'])]['status'] != 'Registered'
       ) or suseconnect_reregister
   block:
     - name: Register

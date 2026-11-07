@@ -18,12 +18,13 @@ This role includes:
 
 Before using this role, ensure that you have the following:
 
+- ansible-core 2.18 or later on the controller.
 - A valid registration key for your SUSE products, which can be obtained with your SUSE subscription.
 - For some products, additional registration keys are required.
 - The role must run as **root**. It does not escalate privileges itself, so run
  it with `become: true` (or connect as root).
 - The `SUSEConnect` binary must be present and executable at `/usr/sbin/SUSEConnect`.
-- A SUSE operating system (`ansible_os_family == "Suse"`) or SL-Micro.
+- A SUSE operating system (`ansible_facts['os_family'] == "Suse"`) or SL-Micro.
 - On public cloud instances only: the `python-instance-billing-flavor-check`
  package must be installed. The role uses it to detect PAYG instances and will
  fail on a cloud instance if it is missing.
@@ -39,7 +40,7 @@ The following variables can be configured when using this role:
 - **Description**: Defines the base product registration. If omitted (or if `key` is not set), registration is skipped entirely. The dictionary should include the following keys:
   - `product`
     - **Type**: string
-    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list, defaults to (`ansible_distribution`). This is used to look up the current registration status and decide whether registration is needed; it is not passed to `SUSEConnect`.
+    - **Description**: Internal product name, see [PRODUCTS.md](PRODUCTS.md) for a list, defaults to the distribution name (`ansible_facts['distribution']`). This is used to look up the current registration status and decide whether the system needs to be registered or deregistered; it is not passed to `SUSEConnect`.
     - **Required**: No
   - `key`
     - **Type**: string
@@ -53,7 +54,7 @@ The following variables can be configured when using this role:
 ### suseconnect_subscriptions
 
 - **Type**: list
-- **Description**: List of additional modules or products to be added or removed on the target system. The system must already be registered before modules can be activated.
+- **Description**: List of additional modules or products to be added or removed on the target system. The system must already be registered before modules can be activated. On a transactional system (SL-Micro, SLES Immutable), activating or removing a module takes effect at the next reboot.
 
   Each item is a dictionary containing the following keys:
 
@@ -68,11 +69,11 @@ The following variables can be configured when using this role:
     - **Default**: enabled
   - `version`
     - **Type**: string
-    - **Description**: Version of the product to be activated, defaults to the base OS version (`ansible_distribution_version`).
+    - **Description**: Version of the product to be activated, defaults to the base OS version (`ansible_facts['distribution_version']`).
     - **Required**: No
   - `arch`
     - **Type**: string
-    - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_machine`).
+    - **Description**: Architecture of the product, defaults to the OS architecture (`ansible_facts['machine']`).
     - **Required**: No
   - `key`
     - **Type**: string
@@ -91,7 +92,7 @@ The following variables can be configured when using this role:
 ### suseconnect_deregister
 
 - **Type**: bool
-- **Description**: Whether to deregister the system (default: false).
+- **Description**: Whether to deregister the system (default: false). On a transactional system (SL-Micro, SLES Immutable), deregistration takes effect at the next reboot when a module is installed or another change is pending.
 
 ## Proxy Support
 
@@ -121,7 +122,6 @@ This example registers a SLES system and activates several modules:
   vars:
     suseconnect_base_product:
       key: '{{ sles_registration_key }}'
-      product: '{{ ansible_distribution }}'
 
     suseconnect_subscriptions:
       - {name: "sle-module-containers", state: enabled}

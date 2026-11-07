@@ -2,12 +2,59 @@
 - name: Call suseconnect status
   ansible.builtin.include_tasks: suseconnect-status.yml
 
+# `-s` lags activation until reboot on transactional systems; an unregistered system has nothing to list
+- name: List extensions and their activation state
+  when: __suseconnect_status[ansible_facts['distribution']]['status'] | default('') == 'Registered'
+  ansible.builtin.command:
+    cmd: "{{ __suseconnect_binary }} --list-extensions --json"
+  register: __suseconnect_extensions_list
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  no_log: "{{ __suseconnect_no_log }}"
+  environment: "{{
+    {} if __suseconnect_is_registercloudguest
+      else (__suseconnect_proxy_env | default({}))
+    }}"  # do not set proxy for cloud commands
+
+- name: Fail if the extension state could not be read
+  when: __suseconnect_extensions_list is not skipped
+  ansible.builtin.assert:
+    that: __suseconnect_extensions_list.rc == 0
+    fail_msg: >-
+      SUSEConnect --list-extensions --json failed with rc {{ __suseconnect_extensions_list.rc }}
+      on a registered system; run it on the host to see the error.
+
+- name: Collect the activated extensions
+  ansible.builtin.set_fact:
+    __suseconnect_activated_extensions: "{{ __suseconnect_activated_csv.split(',') | select | list }}"
+  vars:
+    # SCC nests extensions a few levels deep; 8 bounds the walk with headroom
+    __suseconnect_activated_csv: >-
+      {%- set top = __suseconnect_extensions_list.stdout | default('[]') | from_json -%}
+      {%- set ns = namespace(level=([top] if top is mapping else top), found=[]) -%}
+      {%- for _depth in range(8) -%}
+      {%- set ns.found = ns.found + (ns.level | selectattr('activated', 'defined') | selectattr('activated')
+          | map(attribute='identifier') | list) -%}
+      {%- set ns.level = ns.level | map(attribute='extensions', default=[]) | flatten(levels=1) -%}
+      {%- endfor -%}
+      {{- ns.found | join(',') -}}
+
+- name: Check whether the running snapshot is the one that boots next
+  when: __suseconnect_is_transactional
+  ansible.builtin.command:
+    cmd: snapper --csvout list --columns active,default
+  register: __suseconnect_snapshots
+  changed_when: false
+  check_mode: false
+
 - name: Manage modules and extensions
   when:
-    - (item['state'] | default('enabled') == 'enabled' and (__suseconnect_status[item['name']] is not defined or
-      __suseconnect_status[item['name']]['status'] != 'Registered')) or
-      (item['state'] | default('enabled') == 'disabled' and __suseconnect_status[item['name']] is defined and
-      __suseconnect_status[item['name']]['status'] == 'Registered')
+    - (item['state'] | default('enabled') == 'enabled' and (item['name'] not in __suseconnect_activated_extensions or
+      ((not __suseconnect_is_transactional or 'yes,yes' in __suseconnect_snapshots.stdout_lines) and
+      (__suseconnect_status[item['name']] is not defined or
+      __suseconnect_status[item['name']]['status'] != 'Registered')))) or
+      (item['state'] | default('enabled') == 'disabled' and item['name'] in __suseconnect_activated_extensions)
   ansible.builtin.command:
     cmd: >-
       {{ __suseconnect_subscribe_command }} {{ __command_args }}
@@ -23,8 +70,8 @@
         -d
       {% endif %}
       -p {{ [item['name'],
-          item['version'] | default(ansible_distribution_version),
-          item['arch'] | default(ansible_machine)]
+          item['version'] | default(ansible_facts['distribution_version']),
+          item['arch'] | default(ansible_facts['machine'])]
           | join('/')
       }}
       {% if item['key'] is defined %}
