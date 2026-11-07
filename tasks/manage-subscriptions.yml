@@ -13,7 +13,7 @@
       {{ __suseconnect_subscribe_command }} {{ __command_args }}
   vars:
     __suseconnect_subscribe_command: >-
-      {% if ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+      {% if __suseconnect_is_transactional and not __suseconnect_is_registercloudguest %}
         {{ __suseconnect_commands_dict.subscription.transactional }}
       {% else %}
         {{ __suseconnect_commands_dict.subscription.general }}

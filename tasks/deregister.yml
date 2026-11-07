@@ -9,7 +9,7 @@
     __suseconnect_deregister_command: >-
       {% if __suseconnect_is_registercloudguest %}
         {{ __suseconnect_commands_dict.deregister.cloud }}
-      {% elif ansible_distribution == 'SL-Micro' and not __suseconnect_is_registercloudguest %}
+      {% elif __suseconnect_is_transactional and not __suseconnect_is_registercloudguest %}
         {{ __suseconnect_commands_dict.deregister.transactional }}
       {% else %}
         {{ __suseconnect_commands_dict.deregister.general }}

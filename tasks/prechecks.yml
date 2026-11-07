@@ -21,6 +21,18 @@
       - "This role needs SUSEConnect available and executable!"
       - "Ensure that {{ __suseconnect_binary }} is present"
 
+- name: Check if the system is transactional
+  ansible.builtin.stat:
+    path: /usr/sbin/transactional-update
+  register: __suseconnect_transactional_update_stat
+
+# transactional-update can also be installed on a read-write root, where it cannot register
+- name: Set flag if the system is transactional
+  ansible.builtin.set_fact:
+    __suseconnect_is_transactional: "{{ __suseconnect_transactional_update_stat.stat.exists and
+      'ro' in (ansible_facts['mounts'] | selectattr('mount', 'equalto', '/') | map(attribute='options')
+      | first | default('')).split(',') }}"
+
 - name: Fail if the os is not SUSE family
   ansible.builtin.assert:
     that: ansible_os_family == "Suse" or ansible_distribution == "SL-Micro"
