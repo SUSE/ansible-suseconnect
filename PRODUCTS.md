@@ -24,21 +24,21 @@ Without extra key
 Need extra key
 --------------
 
-| Product                               | Internal Name                        |
-|---------------------------------------|--------------------------------------|
-| Suse Linux Enterprise Server          | SLES                                 |
-| Suse Linux Micro                      | SL-Micro                             |
-| SUSE Linux Enterprise Server for SAP Applications | SLES_SAP                 |
-| Magnum Orchestration                  | openstack-cloud-magnum-orchestration |
-| SLE High Availability Extension       | sle-ha                               |
-| SLE HA GEO Extension                  | sle-ha-geo                           |
-| SLE Live Patching                     |                                      |
-| SLE Point of Service Image Server     | sle-pos                              |
-| SLE Real Time Extension               | SUSE-Linux-Enterprise-RT             |
-| SLE Workstation Extension             | sle-we                               |
-| SLES BCL                              |                                      |
-| SUSE Enterprise Storage               | ses                                  |
-| SUSE Manager Proxy                    | SUSE-Manager-Proxy                   |
-| SUSE Manager Server                   | SUSE-Manager-Server                  |
-| SUSE Manager Server Module            | sle-module-suse-manager-server       |
-| SUSE OpenStack Cloud                  | suse-openstack-cloud                 |
+| Product                                           | Internal Name                        |
+|---------------------------------------------------|--------------------------------------|
+| Suse Linux Enterprise Server                      | SLES                                 |
+| Suse Linux Micro                                  | SL-Micro                             |
+| SUSE Linux Enterprise Server for SAP Applications | SLES_SAP                             |
+| Magnum Orchestration                              | openstack-cloud-magnum-orchestration |
+| SLE High Availability Extension                   | sle-ha                               |
+| SLE HA GEO Extension                              | sle-ha-geo                           |
+| SLE Live Patching                                 |                                      |
+| SLE Point of Service Image Server                 | sle-pos                              |
+| SLE Real Time Extension                           | SUSE-Linux-Enterprise-RT             |
+| SLE Workstation Extension                         | sle-we                               |
+| SLES BCL                                          |                                      |
+| SUSE Enterprise Storage                           | ses                                  |
+| SUSE Manager Proxy                                | SUSE-Manager-Proxy                   |
+| SUSE Manager Server                               | SUSE-Manager-Server                  |
+| SUSE Manager Server Module                        | sle-module-suse-manager-server       |
+| SUSE OpenStack Cloud                              | suse-openstack-cloud                 |
