@@ -29,6 +29,23 @@ Before using this role, ensure that you have the following:
  package must be installed. The role uses it to detect PAYG instances and will
  fail on a cloud instance if it is missing.
 
+## Installation
+
+Add the role to a `requirements.yml`:
+
+```yaml
+roles:
+  - name: suse.suseconnect
+    src: https://github.com/SUSE/ansible-suseconnect.git
+    scm: git
+    version: 1.0.3-suse
+```
+
+Install it with `ansible-galaxy role install -r requirements.yml`. The role is then named
+`suse.suseconnect`; the examples below use `suseconnect`, so set `name: suse.suseconnect` in
+`include_role` when the role was installed this way. On SLES, the `ansible-linux-system-roles`
+package also ships the role, as `suse.linux_system_roles.suseconnect`.
+
 ## Role Variables
 
 The following variables can be configured when using this role:
