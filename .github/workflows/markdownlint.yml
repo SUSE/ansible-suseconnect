@@ -1,0 +1,23 @@
+---
+name: Markdown Lint
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      # CHANGELOG.md repeats the same section headings for every release
+      - name: Lint all Markdown files except CHANGELOG.md
+        uses: DavidAnson/markdownlint-cli2-action@v25
+        with:
+          config: .markdownlint.yaml
+          globs: |
+            **/*.md
+            !CHANGELOG.md
