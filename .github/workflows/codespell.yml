@@ -1,0 +1,19 @@
+---
+# Codespell configuration is in .codespellrc
+name: Codespell
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  codespell:
+    name: Check for spelling errors
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Codespell
+        uses: codespell-project/actions-codespell@v2
